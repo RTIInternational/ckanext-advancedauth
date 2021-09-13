@@ -1,0 +1,23 @@
+{% ckan_extends %}
+
+{% block user_info %}
+    {{ super() }}
+    {% for item in h.advancedauth_schema() %}
+      {% set key = item[0] %}
+      {% set value = item[1] %}
+      {% if not value.get('private', False) or (h.check_access('sysadmin') or is_myself) %}
+        <dl>
+            <dt>
+                {{ _(value.get('label', '')) }}
+                {% if value.get('private', False) %}
+                    <span class="label label-default" title="{{ _('This means only you can see this') }}">{{ _('Private') }}</span>
+                {% endif %}
+
+            </dt>
+            <dd>{{ _(user.get(key, '')) }}</dd>
+        </dl>
+      {% endif %}
+    {% endfor %}
+{% endblock %}
+
+

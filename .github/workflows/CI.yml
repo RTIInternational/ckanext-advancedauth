@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable
+        with:
+          src: "./ckanext/advancedauth"
+          options: "--check"
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v1
+      - name: Install flake8
+        run: pip install flake8
+      - name: Run flake8
+        run: flake8
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    container:
+      image: openknowledge/ckan-dev:2.9
+    services:
+      solr:
+        image: ckan/ckan-solr-dev:2.9
+      postgres:
+        image: ckan/ckan-postgres-dev:2.9
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432  
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+          image: redis:3
+    env:
+      CKAN_SQLALCHEMY_URL: postgresql://ckan_default:pass@postgres/ckan_test
+      CKAN_DATASTORE_WRITE_URL: postgresql://datastore_write:pass@postgres/datastore_test
+      CKAN_DATASTORE_READ_URL: postgresql://datastore_read:pass@postgres/datastore_test
+      CKAN_SOLR_URL: http://solr:8983/solr/ckan
+      CKAN_REDIS_URL: redis://redis:6379/1
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install requirements
+      run: |
+        pip install -r requirements.txt
+        pip install -r dev-requirements.txt
+        pip install -e .
+        pip install -U requests[security]
+    - name: Setup extension (CKAN >= 2.9)
+      run: |
+        pip install future
+        ckan -c /srv/app/src/ckan/test-core.ini db init
+    - name: Run tests
+      run: pytest --ckan-ini=/srv/app/src/ckan/test-core.ini --cov=ckanext.advancedauth --disable-warnings ckanext/advancedauth/tests

@@ -1,0 +1,46 @@
+stages:
+  - Build
+  - Static Analysis
+
+variables:
+  DOCKER_IMAGE: ckanext-advancedauth
+
+# YAML anchor script
+.clean: &clean
+  - docker kill $DOCKER_IMAGE || true
+  - docker container rm -f $DOCKER_IMAGE || true
+  - docker image rm -f $DOCKER_IMAGE || true
+
+# Ensure docker is cleaned up before and after pipeline
+pre-clean:
+  tags: [docker-shell]
+  stage: .pre
+  script: *clean
+post-clean:
+  tags: [docker-shell]
+  stage: .post
+  script: *clean
+
+# Build Docker image
+build:
+  stage: Build
+  tags:
+    - docker-shell
+  script:
+  - docker build -t $DOCKER_IMAGE .
+
+# Run Black formatter on source code
+black:
+  stage: Static Analysis
+  tags:
+  - docker-shell
+  script:
+  - docker run --rm $DOCKER_IMAGE bash -c "black --check ckanext/advancedauth"
+
+# Run Flake8 linter on source code
+flake8:
+  stage: Static Analysis
+  tags:
+  - docker-shell
+  script:
+  - docker run --rm $DOCKER_IMAGE bash -c "flake8 ckanext/advancedauth"

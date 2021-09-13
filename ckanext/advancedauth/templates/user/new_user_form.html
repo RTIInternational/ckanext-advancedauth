@@ -1,0 +1,122 @@
+{% import "macros/form.html" as form %}
+<form id="user-register-form" action="" method="post">
+  {{ form.errors(error_summary) }}
+  {{ form.input("name", id="field-username", label=_("Username"), placeholder=_("username"), value=data.name, error=errors.name, classes=["control-medium"], is_required=True) }}
+  {% set fullname_req = h.advancedauth_require_fullname() %}
+
+  {{ form.input("fullname", id="field-fullname", label=_("Full Name"), placeholder=_("First and Last Name"), value=data.fullname, error=errors.fullname, classes=["control-medium"], is_required=fullname_req) }}
+
+  {{ form.input("email", id="field-email", label=_("Email"), type="email", placeholder=_("email@yourinstitution.org"), value=data.email, error=errors.email, classes=["control-medium"], is_required=True) }}
+  {{ form.input("password1", id="field-password", label=_("Password"), type="password", placeholder="••••••••", value=data.password1, error=errors.password1, classes=["control-medium"], is_required=True) }}
+  {{ form.input("password2", id="field-confirm-password", label=_("Confirm"), type="password", placeholder="••••••••", value=data.password2, error=errors.password2, classes=["control-medium"], is_required=True) }}
+
+  
+  
+  {% for item in h.advancedauth_schema() %}
+    {% set key = item[0] %}
+    {% set value = item[1] %}
+    {% if value.get('input', '') == 'text' %}
+      {{ form.input(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=data[key], error=errors[key], classes=["control-medium"], is_required=value.get('required', False)) }}
+    {% elif value.get('input', '') == 'textarea' %}
+      {{ form.textarea(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=data[key], error=errors[key], classes=["control-medium"], is_required=value.get('required', False)) }}
+    {% elif value.get('input', '') == 'checkbox' %}
+      {{ form.checkbox(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=True, checked=data[key], error=errors[key], classes=["control-medium"], is_required=value.get('required', False)) }}
+    {% endif %}
+  {% endfor %}
+
+  {% if g.recaptcha_publickey %}
+    {% snippet "user/snippets/recaptcha.html", public_key=g.recaptcha_publickey %}
+  {% endif %}
+  
+  {% if h.advancedauth_privacy_policy() or h.advancedauth_terms_of_service() %}
+  <hr />
+  {% endif %}
+
+  {% if h.advancedauth_terms_of_service() %}
+  {% set tos = h.advancedauth_terms_of_service_label() %}
+    <div class="advancedauth_terms_of_service">
+        {% block advancedauth_terms_of_service_inline %}
+          {% snippet h.advancedauth_inline_dua() %}
+        {% endblock %}
+        {% block advancedauth_terms_of_service_download %}
+        <a 
+        class="btn btn-primary" 
+        aria-label="open terms of service in another tab" 
+        target="_blank"
+        download
+        href="/{{h.advancedauth_terms_of_service()}}">
+          {% block advancedauth_terms_of_service_button_label %}
+            Download {{ tos }}
+          {% endblock %}
+        </a>
+        {% endblock %}
+        
+        {{ form.checkbox('advancedauth_terms_of_service', id="field-advancedauth_terms_of_service", label=_("By checking this box, I certify that I have read and agree to the above " + tos), value=True, checked=data['advancedauth_terms_of_service'], error=errors['advancedauth_terms_of_service'], classes=["control-medium"], is_required=True) }}
+    </div>
+  {% endif %}
+
+  
+  {% if h.advancedauth_privacy_policy() %}
+  {% set pp = h.advancedauth_privacy_policy_label() %}
+    <div class="advancedauth_privacy_policy">
+        {% block advancedauth_privacy_policy_inline %}
+          {% snippet h.advancedauth_inline_privacy_policy() %}
+        {% endblock %}
+        {% block advancedauth_privacy_policy_download %}
+        <a 
+        class="btn btn-primary" 
+        aria-label="open privacy policy in another tab" 
+        target="_blank"
+        download
+        href="/{{h.advancedauth_privacy_policy()}}">
+          {% block advancedauth_privacy_policy_button_label %}
+            Download {{ pp }}
+          {% endblock %}
+        </a>
+        {% endblock %}
+    </div>
+  {% endif %}
+
+  {% if h.advancedauth_privacy_policy() or h.advancedauth_terms_of_service() %}
+  <hr />
+  {% endif %}
+
+  {{ form.required_message() }}
+  <div class="advancedauth_disclaimer">
+    {% block advancedauth_disclaimer %}
+    {% endblock %}
+  </div>
+  <div class="form-actions">
+    {% block form_actions %}
+      <button class="btn btn-primary" id="create_account_button" type="submit" name="save">{{ _("Create Account") }}</button>
+      {% if h.advancedauth_must_view_terms_of_service() %}
+        <br />
+        <span class="small" id="must-view-tos">Please view the {{tos}} prior to creating an account</span>
+      {% endif %}
+      {% if h.advancedauth_must_view_privacy_policy() %}
+        <br />
+        <span class="small" id="must-view-privacy-policy">Please view the {{pp}} prior to creating an account</span>
+      {% endif %}
+    {% endblock %}
+  </div>
+</form>
+
+{% if h.advancedauth_must_view_terms_of_service() %}
+<script type="text/javascript">
+  let dua_viewed = document.getElementById('field-advancedauth_terms_of_service')
+  
+  if(!dua_viewed.checked) {
+    // When the document loads, disable account creation if DUA checkbox is not checked
+    document.getElementById('create_account_button').disabled = "{{h.advancedauth_must_view_terms_of_service()}}".toLowerCase()
+  }
+  
+  dua_viewed.onchange = function () {
+    document.getElementById('create_account_button').disabled = !this.checked
+    document.getElementById('must-view-tos').setAttribute('style', 'display:none;')
+  }
+</script>
+{% else %}
+<script type="text/javascript">
+  function tos(){return true}
+</script>
+{% endif %}
