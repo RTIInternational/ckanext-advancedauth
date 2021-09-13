@@ -32,7 +32,7 @@ Enable the features you want to use with configuration options.
 - [Only allow authenticated users](#only-allow-authenticated-users)
 - [Additional user metadata](#additional-user-metadata)
 - [New user email](#new-user-email)
-- [Terms of Service / Privacy Policy](#terms-of-service---privacy-policy)
+- [Terms of Service / Privacy Policy](#terms-of-service-privacy-policy)
 
 
 ### Only allow authenticated users
