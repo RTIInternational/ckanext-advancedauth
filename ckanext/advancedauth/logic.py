@@ -29,7 +29,10 @@ def _modify_user_schema(context, mode):
 
     # add required schema fields with not_empty validator
     for field in advancedauth_schema_keys["required"]:
-        schema[field] = [get_validators()["not_empty_string"], toolkit.get_validator("not_empty")]
+        schema[field] = [
+            get_validators()["not_empty_string"],
+            toolkit.get_validator("not_empty"),
+        ]
 
     # add optionals schema fields with ignore_missing validator
     for field in advancedauth_schema_keys["optional"]:
@@ -58,7 +61,10 @@ def custom_user_create(context, data_dict):
         return user_create(context, data_dict)
 
     schema = context["schema"]
-    schema["email"] += [get_validators()["not_empty_string"], toolkit.get_validator("email_validator")]
+    schema["email"] += [
+        get_validators()["not_empty_string"],
+        toolkit.get_validator("email_validator"),
+    ]
 
     context = _modify_user_schema(context, "create")
     data_dict["email"] = data_dict["email"].lower()
@@ -186,7 +192,10 @@ def custom_user_show(context, data_dict):
 # edits custom metadata in update function
 def custom_user_update(context, data_dict):
     schema = context["schema"]
-    schema["email"] += [get_validators()["not_empty_string"], toolkit.get_validator("email_validator")]
+    schema["email"] += [
+        get_validators()["not_empty_string"],
+        toolkit.get_validator("email_validator"),
+    ]
 
     # ignore this onpassword reset workflow
     if context["auth_user_obj"] is not None:
