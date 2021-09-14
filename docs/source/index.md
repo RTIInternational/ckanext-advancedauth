@@ -88,6 +88,9 @@ ckanext.advancedauth.user_create_email_recipient_email = admin@email.com
 ckanext.advancedauth.user_create_email_recipient_name = Admin
 ```
 
+### Validation
+The current iteration of CKAN (`2.9.3`) does not provide validation in the event of a user's email consisting of only whitespace (" "). This feature intercepts the CKAN action when a user registers or resets their password and adds the custom `not_empty_string` validator in addition to the CKAN `email_validator`. This plugin also adds the `not_empty_string` validator to any custom schema fields that have `required` set to `true`.
+
 ### Terms of Service / Privacy Policy
 
 Add a terms of service/data use agreement to your registration page. By enabling this option and providing a terms of service, users will be required to agree to a terms of service on the registration form.
