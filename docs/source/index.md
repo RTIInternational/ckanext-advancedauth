@@ -44,7 +44,20 @@ ckanext.advancedauth.disallow_anonymous_access = true
 ckanext.advancedauth.action_allowlist = request_reset user_reset site_read user_create package_search organization_list_for_user package_create sysadmin
 ckanext.advancedauth.disallow_public_datasets = true
 ```
+### Only allow approved users
+By enabling this feature, users who do not belong to organizations will not be allowed access to basic site functionality and will instead receive an error message of your choosing. This feature allows administrators to enable self-registration, but only allow access once "approved" by adding users to an organization.
 
+```
+ckanext.advancedauth.only_approved_users = true
+"ckanext.advancedauth.only_approved_users_message = <your message here>
+```
+
+### Disallow edits except for author
+By default, CKAN allows all users with the "editor" role in an organization to edit datasets. By enabling this feature, only administrators and the original author of a given dataset will be able to edit.
+
+```
+ckanext.advancedauth.only_authors_can_edit = true
+```
 ### Additional user metadata
 
 Define a schema of additional fields to add to the user.
