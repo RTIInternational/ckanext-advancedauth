@@ -2,22 +2,13 @@ import ckan.plugins.toolkit as toolkit
 import ckan.authz as authz
 from .model import advancedauthAudit
 
-# checks to see if the user is logged in and aborts with a 403 if not
-@toolkit.auth_allow_anonymous_access
-@toolkit.chained_auth_function
-def advancedauth_check_access(next_func, context, data_dict=None):
+# writes an audit object to the audit table
+def advancedauth_auditor(next_func, context, data_dict=None):
     func_name = next_func.__name__
-    if not context.get("auth_user_obj", False) and not context.get("user", False):
-        err_msg = "Authentication is required to access this feature ({0})".format(
-            func_name
-        )
-        raise toolkit.NotAuthorized(err_msg)
-    else:
-        if any(action in func_name for action in ["resource", "package", "datastore"]):
-            package_id = context["package"].id if context.get("package", False) else ""
-            resource_id = (
-                context["resource"].id if context.get("resource", False) else ""
-            )
+    if any(action in func_name for action in ["resource", "package", "datastore"]):
+        package_id = context["package"].id if context.get("package", False) else ""
+        resource_id = context["resource"].id if context.get("resource", False) else ""
+        if context["user"] or context["auth_user_obj"]:
             user_id = context["auth_user_obj"].id
             audit = advancedauthAudit(
                 user_id=user_id,
@@ -26,7 +17,16 @@ def advancedauth_check_access(next_func, context, data_dict=None):
                 resource_id=resource_id,
             )
             audit.save()
-        return next_func(context, data_dict)
+
+
+# checks to see if the user is logged in and aborts with a 403 if not
+def advancedauth_check_access(next_func, context, data_dict=None):
+    func_name = next_func.__name__
+    if not context.get("auth_user_obj", False) and not context.get("user", False):
+        err_msg = "Authentication is required to access this feature ({0})".format(
+            func_name
+        )
+        raise toolkit.NotAuthorized(err_msg)
 
 
 # this permission, added to the package_update action, only allows the original creator of the
@@ -74,7 +74,7 @@ def only_approved_users(context, data_dict=None):
     orgs = func({}, {"id": user_id})
     if len(orgs):
         return {"success": True}
-
+    print(orgs)
     approval_message = toolkit.config.get(
         "ckanext.advancedauth.only_approved_users_message",
         "Your account is pending approval",
@@ -82,42 +82,63 @@ def only_approved_users(context, data_dict=None):
     toolkit.abort(403, approval_message)
 
 
-# this is published to the plugin
-def get_auth_functions():
-    ret = {}
-    if toolkit.asbool(
-        toolkit.config.get("ckanext.advancedauth.only_authors_can_edit", False)
-    ):
-        ret["package_update"] = my_package_update
+@toolkit.auth_allow_anonymous_access
+@toolkit.chained_auth_function
+def advancedauth_wrapper_function(next_func, context, data_dict=None):
+    # run auditor
+    advancedauth_auditor(next_func, context, data_dict)
 
-    if toolkit.asbool(
+    # get function name
+    func_name = next_func.__name__
+
+    # set up variables for only_approved_users
+    only_approved_users_var = toolkit.asbool(
         toolkit.config.get("ckanext.advancedauth.only_approved_users", False)
-    ):
-        ret["package_show"] = only_approved_users
-        ret["user_list"] = only_approved_users
-        ret["user_show"] = only_approved_users
-        ret["ckanext_mecfs_explorer"] = only_approved_users
-        ret["organization_list"] = only_approved_users
+    )
+    only_approved_users_actions = [
+        "package_show",
+        "user_list",
+        "user_show",
+        "organization_list",
+    ]
 
-    return ret
+    # run only_approved_users
+    # this aborts with 403 if failed
+    if only_approved_users_var and func_name in only_approved_users_actions:
+
+        only_approved_users(context, data_dict)
+
+    ## setup variables for disallow_anonymous_access
+    disallow_anonymous_access = toolkit.asbool(
+        toolkit.config.get("ckanext.advancedauth.disallow_anonymous_access", False)
+    )
+
+    action_allowlist = toolkit.aslist(
+        toolkit.config.get("ckanext.advancedauth.action_allowlist", "")
+    )
+
+    ## run advancedauth_check_access
+    if disallow_anonymous_access and func_name not in action_allowlist:
+        advancedauth_check_access(next_func, context, data_dict)
+
+    ## setup only_authors_can_edit
+    only_authors_can_edit = toolkit.asbool(
+        toolkit.config.get("ckanext.advancedauth.only_authors_can_edit", False)
+    )
+
+    if func_name == "package_update" and only_authors_can_edit:
+        package_update = my_package_update(context, data_dict)
+        if package_update.get("success") == False:
+            return package_update
+
+    return next_func(context, data_dict)
 
 
-# gets all authentication actions from authz, and appends the above permission to any not allowed by the production.ini file
+# gets all authentication actions from authz
+# append our auth wrapper function to all actions
 def get_actions_list():
     actions_list = {}
-    if toolkit.asbool(
-        toolkit.config.get("ckanext.advancedauth.disallow_anonymous_access", False)
-    ):
-        # get all possible actions
-        actions = list(authz.auth_functions_list())
-        # remove allowlisted action
-        allowlist = toolkit.aslist(
-            toolkit.config.get("ckanext.advancedauth.action_allowlist", "")
-        )
-        for action in allowlist:
-            actions.remove(action)
-        # create dict with all remaining actions mapped to our function
-        action_func = advancedauth_check_access
-        for action in actions:
-            actions_list[action] = action_func
+    actions = list(authz.auth_functions_list())
+    for action in actions:
+        actions_list[action] = advancedauth_wrapper_function
     return actions_list
