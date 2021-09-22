@@ -1,7 +1,7 @@
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 
-from .auth import get_actions_list, get_auth_functions
+from .auth import get_actions_list
 from .helpers import helpers
 from .logic import actions
 from .model import initdb
@@ -35,11 +35,6 @@ class AdvancedauthPlugin(plugins.SingletonPlugin):
     # Adds additional authentication functions to actions
     def get_auth_functions(self):
         return get_actions_list()
-
-    # IAuthFunctions
-    # Defines custom authentication gates
-    def get_auth_functions(self):
-        return get_auth_functions()
 
     # ITemplateHelpers
     # makes functions available in templates
