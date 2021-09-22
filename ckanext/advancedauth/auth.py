@@ -74,7 +74,6 @@ def only_approved_users(context, data_dict=None):
     orgs = func({}, {"id": user_id})
     if len(orgs):
         return {"success": True}
-    print(orgs)
     approval_message = toolkit.config.get(
         "ckanext.advancedauth.only_approved_users_message",
         "Your account is pending approval",
