@@ -90,6 +90,19 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     # get function name
     func_name = next_func.__name__
 
+    ## setup variables for disallow_anonymous_access
+    disallow_anonymous_access = toolkit.asbool(
+        toolkit.config.get("ckanext.advancedauth.disallow_anonymous_access", False)
+    )
+
+    action_allowlist = toolkit.aslist(
+        toolkit.config.get("ckanext.advancedauth.action_allowlist", "")
+    )
+
+    ## run advancedauth_check_access
+    if disallow_anonymous_access and func_name not in action_allowlist:
+        advancedauth_check_access(next_func, context, data_dict)
+
     # set up variables for only_approved_users
     only_approved_users_var = toolkit.asbool(
         toolkit.config.get("ckanext.advancedauth.only_approved_users", False)
@@ -106,19 +119,6 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     if only_approved_users_var and func_name in only_approved_users_actions:
 
         only_approved_users(context, data_dict)
-
-    ## setup variables for disallow_anonymous_access
-    disallow_anonymous_access = toolkit.asbool(
-        toolkit.config.get("ckanext.advancedauth.disallow_anonymous_access", False)
-    )
-
-    action_allowlist = toolkit.aslist(
-        toolkit.config.get("ckanext.advancedauth.action_allowlist", "")
-    )
-
-    ## run advancedauth_check_access
-    if disallow_anonymous_access and func_name not in action_allowlist:
-        advancedauth_check_access(next_func, context, data_dict)
 
     ## setup only_authors_can_edit
     only_authors_can_edit = toolkit.asbool(
