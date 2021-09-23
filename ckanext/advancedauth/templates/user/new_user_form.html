@@ -16,11 +16,11 @@
     {% set key = item[0] %}
     {% set value = item[1] %}
     {% if value.get('input', '') == 'text' %}
-      {{ form.input(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=data[key], error=errors[key], classes=["control-medium"], is_required=value.get('required', False)) }}
+      {{ form.input(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=data[key], error=errors[key], classes=["control-medium " + value.get('form_classes', '')], is_required=value.get('required', False)) }}
     {% elif value.get('input', '') == 'textarea' %}
-      {{ form.textarea(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=data[key], error=errors[key], classes=["control-medium"], is_required=value.get('required', False)) }}
+      {{ form.textarea(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=data[key], error=errors[key], classes=["control-medium " + value.get('form_classes', '')], is_required=value.get('required', False)) }}
     {% elif value.get('input', '') == 'checkbox' %}
-      {{ form.checkbox(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=True, checked=data[key], error=errors[key], classes=["control-medium"], is_required=value.get('required', False)) }}
+      {{ form.checkbox(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=True, checked=data[key], error=errors[key], classes=["control-medium " + value.get('form_classes', '')], is_required=value.get('required', False)) }}
     {% endif %}
   {% endfor %}
 
