@@ -92,7 +92,7 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
 
     ## setup variables for disallow_anonymous_access
     disallow_anonymous_access = toolkit.asbool(
-        toolkit.config.get("ckanext.advancedauth.disallow_anonymous_access", False)
+        toolkit.config.get("ckanext.advancedauth.disallow_anonymous_access") or False
     )
 
     action_allowlist = toolkit.aslist(
@@ -105,7 +105,7 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
 
     # set up variables for only_approved_users
     only_approved_users_var = toolkit.asbool(
-        toolkit.config.get("ckanext.advancedauth.only_approved_users", False)
+        toolkit.config.get("ckanext.advancedauth.only_approved_users") or False
     )
     only_approved_users_actions = [
         "package_show",
@@ -122,7 +122,7 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
 
     ## setup only_authors_can_edit
     only_authors_can_edit = toolkit.asbool(
-        toolkit.config.get("ckanext.advancedauth.only_authors_can_edit", False)
+        toolkit.config.get("ckanext.advancedauth.only_authors_can_edit") or False
     )
 
     if func_name == "package_update" and only_authors_can_edit:
