@@ -1,5 +1,7 @@
 from ckan.common import request
 import ckan.plugins.toolkit as toolkit
+from ckan.logic.action.get import user_show
+import ckan.model as model
 from flask import Blueprint
 
 from .model import advancedauthAudit
@@ -44,6 +46,7 @@ def map_row_data(row):
   return {
     "id": row.id,
     "user_id": row.user_id,
+    "username": user_show({"model": model}, {"id": row.user_id})["name"],
     "action": row.action,
     "package_id": row.package_id,
     "resource_id": row.resource_id
