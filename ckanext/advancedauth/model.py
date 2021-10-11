@@ -101,9 +101,11 @@ class advancedauthAudit(DomainObject):
 
     @classmethod
     def get_all_actions_by_date(self, start_date="2000-01-01", end_date="3000-12-12"):
+        converted_start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        converted_end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
         query = Session.query(advancedauthAudit).filter(
-            advancedauthAudit.timestamp >= start_date
-            and advancedauthAudit.timestamp <= end_date
+            (advancedauthAudit.timestamp >= converted_start_date)
+            & (advancedauthAudit.timestamp <= converted_end_date)
         )
         return query.all()
 
