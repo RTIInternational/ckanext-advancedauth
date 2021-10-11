@@ -5,6 +5,7 @@ from .auth import get_actions_list
 from .helpers import helpers
 from .logic import actions
 from .model import initdb
+from .auditdata import audit_table
 
 
 class AdvancedauthPlugin(plugins.SingletonPlugin):
@@ -13,6 +14,14 @@ class AdvancedauthPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IActions)
     plugins.implements(plugins.IAuthFunctions, inherit=True)
     plugins.implements(plugins.ITemplateHelpers)
+    plugins.implements(plugins.IBlueprint)
+
+    #######################################################################
+    # IBlueprint                                                          #
+    # Return a Flask Blueprint object to be registered by the app         #
+    #######################################################################
+    def get_blueprint(self):
+        return audit_table
 
     # IConfigurer
     # Adds templates to CKAN
