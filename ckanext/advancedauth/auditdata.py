@@ -1,6 +1,6 @@
 from ckan.common import request
 import ckan.plugins.toolkit as toolkit
-from ckan.logic.action.get import user_show
+from ckan.logic.action.get import user_show, user_list, current_package_list_with_resources, resource_show, package_show
 import ckan.model as model
 from flask import Blueprint
 
@@ -40,6 +40,26 @@ def date_audit():
     return {action["id"]: {k:v for k,v in action.items() if k != "id"} for action in actions}
   return { "error": "User must be logged in as a sysadmin in order to access this API endpoint." }
 
+
+@audit_table.route("/getusers")
+def list_users():
+  if toolkit.g.userobj and toolkit.g.userobj.sysadmin:
+    users = user_list({"model": model}, {})
+    return {user["id"]: {k:v for k,v in user.items()} for user in users}
+  return { "error": "User must be logged in as a sysadmin in order to access this API endpoint." }
+
+
+@audit_table.route("/getresources")
+def list_resources():
+  if toolkit.g.userobj and toolkit.g.userobj.sysadmin:
+    packages = current_package_list_with_resources({"user": toolkit.g.userobj.name, "model": model}, {})
+    resource_lst = []
+    for package in packages:
+      for resource in package.get("resources", []):
+        resource["package_name"] = package["title"]
+        resource_lst.append(resource)
+    return {resource["id"]: {k:v for k,v in resource.items()} for resource in resource_lst}
+  return { "error": "User must be logged in as a sysadmin in order to access this API endpoint." }
 
 
 def map_row_data(row):
