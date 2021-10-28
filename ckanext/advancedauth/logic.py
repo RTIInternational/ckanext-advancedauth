@@ -191,11 +191,12 @@ def custom_user_show(context, data_dict):
 
 # edits custom metadata in update function
 def custom_user_update(context, data_dict):
-    schema = context["schema"]
-    schema["email"] += [
-        get_validators()["not_empty_string"],
-        toolkit.get_validator("email_validator"),
-    ]
+    schema = context.get("schema")
+    if schema is not None:
+        schema["email"] += [
+            get_validators()["not_empty_string"],
+            toolkit.get_validator("email_validator"),
+        ]
 
     # ignore this onpassword reset workflow
     if context["auth_user_obj"] is not None:
