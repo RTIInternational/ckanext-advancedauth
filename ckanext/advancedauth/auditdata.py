@@ -2,6 +2,7 @@ from ckan.common import request
 import ckan.plugins.toolkit as toolkit
 from ckan.logic.action.get import user_show, user_list, current_package_list_with_resources, resource_show, package_show
 import ckan.model as model
+from ckan.logic import NotFound, ValidationError
 from flask import Blueprint
 
 from .model import advancedauthAudit
@@ -63,11 +64,23 @@ def list_resources():
 
 
 def map_row_data(row):
+  resource_name = ""
+  package_name = ""
+  try:
+    resource_name = resource_show({"model": model}, {"id": row.resource_id})["name"]
+  except (NotFound, ValidationError):
+    resource_name = ""
+  try:
+    package_name = package_show({"model": model}, {"id": row.package_id})["name"]
+  except (NotFound, ValidationError):
+    package_name = ""
   return {
     "id": row.id,
     "user_id": row.user_id,
     "username": user_show({"model": model}, {"id": row.user_id})["name"],
     "action": row.action,
     "package_id": row.package_id,
-    "resource_id": row.resource_id
+    "package_name": package_name,
+    "resource_id": row.resource_id,
+    "resource_name": resource_name
   }
