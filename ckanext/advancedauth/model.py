@@ -80,7 +80,7 @@ class advancedauthAudit(DomainObject):
             self.action,
             self.package_id,
             self.resource_id,
-            self.timestamp
+            self.timestamp,
         )
 
     def __str__(self):

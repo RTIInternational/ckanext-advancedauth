@@ -113,5 +113,5 @@ def map_row_data(row):
         "package_name": package_name,
         "resource_id": row.resource_id,
         "resource_name": resource_name,
-        "timestamp": row.timestamp
+        "timestamp": row.timestamp,
     }
