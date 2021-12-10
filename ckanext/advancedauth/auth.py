@@ -1,5 +1,6 @@
 import ckan.plugins.toolkit as toolkit
 import ckan.authz as authz
+import ckan.model as model
 from .model import advancedauthAudit
 
 # writes an audit object to the audit table
@@ -8,15 +9,17 @@ def advancedauth_auditor(next_func, context, data_dict=None):
     if any(action in func_name for action in ["resource", "package", "datastore"]):
         package_id = context["package"].id if context.get("package", False) else ""
         resource_id = context["resource"].id if context.get("resource", False) else ""
-        if context["user"] or context["auth_user_obj"]:
+        if context["auth_user_obj"]:
             user_id = context["auth_user_obj"].id
-            audit = advancedauthAudit(
-                user_id=user_id,
-                action=func_name,
-                package_id=package_id,
-                resource_id=resource_id,
-            )
-            audit.save()
+        elif context["user"]:
+            user_id = model.User.get(context["user"]).id
+        audit = advancedauthAudit(
+            user_id=user_id,
+            action=func_name,
+            package_id=package_id,
+            resource_id=resource_id,
+        )
+        audit.save()
 
 
 # checks to see if the user is logged in and aborts with a 403 if not
