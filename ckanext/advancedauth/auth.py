@@ -15,7 +15,9 @@ def advancedauth_auditor(next_func, context, data_dict=None):
         elif context["user"]:
             user_id = model.User.get(context["user"]).id
         else:
-            raise toolkit.NotAuthorized("Could not locate user ID")
+            raise toolkit.NotAuthorized(
+                "Could not locate user ID; context: {}".format(context)
+            )
         audit = advancedauthAudit(
             user_id=user_id,
             action=func_name,
