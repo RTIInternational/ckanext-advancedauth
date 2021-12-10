@@ -1,7 +1,10 @@
+import logging
 import ckan.plugins.toolkit as toolkit
 import ckan.authz as authz
 import ckan.model as model
 from .model import advancedauthAudit
+
+log = logging.getLogger(__name__)
 
 # writes an audit object to the audit table
 def advancedauth_auditor(next_func, context, data_dict=None):
@@ -15,9 +18,12 @@ def advancedauth_auditor(next_func, context, data_dict=None):
         elif context["user"]:
             user_id = model.User.get(context["user"]).id
         else:
-            raise toolkit.NotAuthorized(
-                "Could not locate user ID; context: {}".format(context)
+            log.debug(
+                "Could not locate user ID; user: {}, auth_user_obj: {}".format(
+                    context["user"], context.get("auth_user_obj", False)
+                )
             )
+            return
         audit = advancedauthAudit(
             user_id=user_id,
             action=func_name,
