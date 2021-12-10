@@ -9,10 +9,13 @@ def advancedauth_auditor(next_func, context, data_dict=None):
     if any(action in func_name for action in ["resource", "package", "datastore"]):
         package_id = context["package"].id if context.get("package", False) else ""
         resource_id = context["resource"].id if context.get("resource", False) else ""
+        user_id = ""
         if context["auth_user_obj"]:
             user_id = context["auth_user_obj"].id
         elif context["user"]:
             user_id = model.User.get(context["user"]).id
+        else:
+            raise toolkit.NotAuthorized("Could not locate user ID")
         audit = advancedauthAudit(
             user_id=user_id,
             action=func_name,
