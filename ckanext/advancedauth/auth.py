@@ -16,7 +16,9 @@ def advancedauth_auditor(next_func, context, data_dict=None):
         if context["auth_user_obj"]:
             user_id = context["auth_user_obj"].id
         elif context["user"]:
-            user_id = model.User.get(context["user"]).id
+            user = model.User.get(context["user"])
+            if user and hasattr(user, "id"):
+                user_id = user.id
         else:
             log.debug(
                 "Could not locate user ID; user: {}, auth_user_obj: {}".format(
