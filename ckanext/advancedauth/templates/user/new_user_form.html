@@ -4,7 +4,7 @@
   {{ form.input("name", id="field-username", label=_("Username"), placeholder=_("username"), value=data.name, error=errors.name, classes=["control-medium"], is_required=True) }}
   {% set fullname_req = h.advancedauth_require_fullname() %}
 
-  {{ form.input("fullname", id="field-fullname", label=_("Full Name"), placeholder=_("First and Last Name"), value=data.fullname, error=errors.fullname, classes=["control-medium"], is_required=fullname_req) }}
+  {{ form.input("fullname", id="field-fullname", label=_("Full Name"), placeholder=_("First and Last Name"), value=data.fullname, error=errors.fullname, classes=["control-medium"], is_required=True) }}
 
   {{ form.input("email", id="field-email", label=_("Email"), type="email", placeholder=_("email@yourinstitution.org"), value=data.email, error=errors.email, classes=["control-medium"], is_required=True) }}
   {{ form.input("password1", id="field-password", label=_("Password"), type="password", placeholder="••••••••", value=data.password1, error=errors.password1, classes=["control-medium"], is_required=True) }}
@@ -21,6 +21,21 @@
       {{ form.textarea(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=data[key], error=errors[key], classes=["control-medium " + value.get('form_classes', '')], is_required=value.get('required', False)) }}
     {% elif value.get('input', '') == 'checkbox' %}
       {{ form.checkbox(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=True, checked=data[key], error=errors[key], classes=["control-medium " + value.get('form_classes', '')], is_required=value.get('required', False)) }}
+    {% elif value.get('input', '') == 'select' %}
+      <div class="form-group control-medium mb-0">
+        <label for="field-{{ key }}">
+          {% if value.get('required', False) %} <span title="This field is required" class="control-required">*</span> {% endif %} {{ value.get('label', '') }}
+        </label>
+        <div class="controls">
+          <select name="{{ key }}" id="field-{{ key }}" class="form-control">
+            {% for option in value.get('choices', []) %}
+              <option value="{{ option.get('value', '') }}" {% if option.get('value', '') == data[key] %} selected {% endif %} {% if value.get('required', False) %} required {% endif %} >
+                {{ option.get('label', '') }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
     {% endif %}
   {% endfor %}
 
