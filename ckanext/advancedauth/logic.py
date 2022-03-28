@@ -106,13 +106,13 @@ def custom_user_create(context, data_dict):
             recipient_url = (
                 toolkit.config.get("ckan.site_url") + "/user/" + user_dict.get("name")
             )
-            subject = u"New User Registered: " + user_dict.get("name")
+            subject = "New User Registered: " + user_dict.get("name")
             body = (
-                u"User "
+                "User "
                 + user_dict.get("name")
-                + u" registered with email "
+                + " registered with email "
                 + user_dict.get("email")
-                + u".\n"
+                + ".\n"
             )
             deny_list = [
                 "name",
@@ -129,13 +129,11 @@ def custom_user_create(context, data_dict):
             for key, value in user_dict.items():
                 value = "" if value is None else value
                 if key not in deny_list:
-                    body += key + u": " + value + u"\n"
+                    body += key + ": " + value + "\n"
             advancedauth_schema = helpers["advancedauth_schema"]()
             for item in advancedauth_schema:
-                body += (
-                    item[1].get("label") + u": " + data_dict.get(item[0], "") + u"\n"
-                )
-            body += u"\nLink to profile: " + recipient_url
+                body += item[1].get("label") + ": " + data_dict.get(item[0], "") + "\n"
+            body += "\nLink to profile: " + recipient_url
             mailer.mail_recipient(recipient_name, recipient_email, subject, body)
 
     # send welcome email if configured to do so
@@ -143,21 +141,21 @@ def custom_user_create(context, data_dict):
         recipient_name = user_dict.get("fullname", False) or user_dict.get("name", "")
         recipient_email = user_dict.get("email")
         default_subject = (
-            toolkit.config.get("ckan.site_title", "") + u": New User Registration"
+            toolkit.config.get("ckan.site_title", "") + ": New User Registration"
         )
         subject = toolkit.config.get(
             "ckanext.advancedauth.welcome_email_subject", default_subject
         )
-        body = u"Thank you for registering for " + toolkit.config.get(
+        body = "Thank you for registering for " + toolkit.config.get(
             "ckan.site_title", ""
         )
-        body += u"\n"
+        body += "\n"
         # TODO: Add better tooling for sites. This is very fragile and fails on many special characters.
         # We should specify a location for an email template
         if toolkit.config.get("ckanext.advancedauth.welcome_email_text", False):
             body += toolkit.config.get("ckanext.advancedauth.welcome_email_text")
-            body += u"\n"
-        body += toolkit.config.get("ckan.site_title", "") + u" Team"
+            body += "\n"
+        body += toolkit.config.get("ckan.site_title", "") + " Team"
         mailer.mail_recipient(recipient_name, recipient_email, subject, body)
 
 
@@ -171,7 +169,7 @@ def custom_user_show(context, data_dict):
     # add each public field to the object
     advancedauth_schema_keys = helpers["advancedauth_schema_keys"]()
     for field in advancedauth_schema_keys["public"]:
-        user_dict[field] = u""
+        user_dict[field] = ""
 
     # add each private field if the logged in user is the user being shown or the logged in user is sysadmin
     auth_user = context["auth_user_obj"]
@@ -179,7 +177,7 @@ def custom_user_show(context, data_dict):
         username = user_dict["id"]
         if username == auth_user.id or auth_user.sysadmin:
             for field in advancedauth_schema_keys["private"]:
-                user_dict[field] = u""
+                user_dict[field] = ""
 
     # fill in fields from extras, respecting privacy
     for extra in extras:
@@ -229,7 +227,7 @@ def custom_user_update(context, data_dict):
                 )
                 extra.save()
                 user_dict[field] = new_val_for_field
-        user_dict[field] = u""
+        user_dict[field] = ""
     return user_dict
 
 

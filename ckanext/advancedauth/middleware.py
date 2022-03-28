@@ -24,7 +24,7 @@ class advancedauthMiddleware:
         ):
             if not request.environ.get("repoze.who.identity", False):
                 res = Response(
-                    u"Authorization Required", mimetype="text/plain", status=403
+                    "Authorization Required", mimetype="text/plain", status=403
                 )
                 return res(environ, start_response)
         return self.app(environ, start_response)

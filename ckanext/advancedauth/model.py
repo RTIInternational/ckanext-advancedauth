@@ -74,13 +74,16 @@ class advancedauthExtras(DomainObject):
 
 class advancedauthAudit(DomainObject):
     def __repr__(self):
-        return "<advancedauthAudit id=%s user_id=%s action=%s package_id=%s resource_id=%s timestamp=%s>" % (
-            self.id,
-            self.user_id,
-            self.action,
-            self.package_id,
-            self.resource_id,
-            self.timestamp,
+        return (
+            "<advancedauthAudit id=%s user_id=%s action=%s package_id=%s resource_id=%s timestamp=%s>"
+            % (
+                self.id,
+                self.user_id,
+                self.action,
+                self.package_id,
+                self.resource_id,
+                self.timestamp,
+            )
         )
 
     def __str__(self):
