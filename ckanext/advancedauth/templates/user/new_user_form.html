@@ -4,7 +4,7 @@
   {{ form.input("name", id="field-username", label=_("Username"), placeholder=_("username"), value=data.name, error=errors.name, classes=["control-medium"], is_required=True) }}
   {% set fullname_req = h.advancedauth_require_fullname() %}
 
-  {{ form.input("fullname", id="field-fullname", label=_("Full Name"), placeholder=_("First and Last Name"), value=data.fullname, error=errors.fullname, classes=["control-medium"], is_required=True) }}
+  {{ form.input("fullname", id="field-fullname", label=_("Full Name"), placeholder=_("First and Last Name"), value=data.fullname, error=errors.fullname, classes=["control-medium"], is_required=fullname_req) }}
 
   {{ form.input("email", id="field-email", label=_("Email"), type="email", placeholder=_("email@yourinstitution.org"), value=data.email, error=errors.email, classes=["control-medium"], is_required=True) }}
   {{ form.input("password1", id="field-password", label=_("Password"), type="password", placeholder="••••••••", value=data.password1, error=errors.password1, classes=["control-medium"], is_required=True) }}
