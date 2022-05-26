@@ -31,6 +31,21 @@
         {{ form.textarea(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=data[key], error=errors[key], classes=["control-medium"], is_required=value.get('required', False)) }}
       {% elif value.get('input', '') == 'checkbox' %}
         {{ form.checkbox(key, id="field-" + key, label=_(value.get('label', '')), placeholder=_(value.get('placeholder', '')), value=True, checked=data[key], error=errors[key], classes=["control-medium"], is_required=value.get('required', False)) }}
+      {% elif value.get('input', '') == 'select' %}
+        <div class="form-group control-medium mb-0">
+          <label for="field-{{ key }}">
+            {% if value.get('required', False) %} <span title="This field is required" class="control-required">*</span> {% endif %} {{ value.get('label', '') }}
+          </label>
+          <div class="controls">
+            <select name="{{ key }}" id="field-{{ key }}" class="form-control">
+              {% for option in value.get('choices', []) %}
+                <option value="{{ option.get('value', '') }}" {% if option.get('value', '') == data[key] %} selected {% endif %} {% if value.get('required', False) %} required {% endif %} >
+                  {{ option.get('label', '') }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
       {% endif %}
     {% endfor %}
 
