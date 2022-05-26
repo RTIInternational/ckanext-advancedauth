@@ -37,11 +37,12 @@ Enable the features you want to use with configuration options.
 
 ### Only allow authenticated users
 
-By default, unauthenticated users are allowed to use most CKAN actions. This feature only allows specific actions (`action_allowlist`) and blocks all others.
+By default, unauthenticated users are allowed to use most CKAN actions. This feature only allows specific actions (`action_allowlist`) and blocks all other CKAN core actions. If custom actions are defined in extensions, they can be added to the `action_blocklist`. Please note that custom actions must be checked (using the [extension toolkit's check_access function](https://docs.ckan.org/en/2.9/extensions/plugins-toolkit.html#ckan.plugins.toolkit.ckan.plugins.toolkit.check_access)) in order for them to be detected by the blocklist.
 
 ```
 ckanext.advancedauth.disallow_anonymous_access = true
 ckanext.advancedauth.action_allowlist = request_reset user_reset site_read user_create package_search organization_list_for_user package_create sysadmin
+ckanext.advancedauth.action_blocklist = my_custom_action my_custom_action
 ckanext.advancedauth.disallow_public_datasets = true
 ```
 ### Only allow approved users

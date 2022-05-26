@@ -115,8 +115,14 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
         toolkit.config.get("ckanext.advancedauth.action_allowlist", "")
     )
 
+    action_blocklist = toolkit.aslist(
+        toolkit.config.get("ckanext.advancedauth.action_blocklist", "")
+    )
+
     ## run advancedauth_check_access
-    if disallow_anonymous_access and func_name not in action_allowlist:
+    if disallow_anonymous_access and (
+        func_name not in action_allowlist or func_name in action_blocklist
+    ):
         advancedauth_check_access(next_func, context, data_dict)
 
     # set up variables for only_approved_users
