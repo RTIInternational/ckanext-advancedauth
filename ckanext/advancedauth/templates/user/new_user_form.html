@@ -36,6 +36,8 @@
           </select>
         </div>
       </div>
+    {% elif value.get('type', '') == 'note' %}
+      <p id="note-{{ key }}">{{ value.get('text', '')|safe }}</p>
     {% endif %}
   {% endfor %}
 
