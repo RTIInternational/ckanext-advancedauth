@@ -13,7 +13,7 @@ def advancedauth_auditor(next_func, context, data_dict=None):
         package_id = context["package"].id if context.get("package", False) else ""
         resource_id = context["resource"].id if context.get("resource", False) else ""
         user_id = ""
-        if context["auth_user_obj"]:
+        if context["auth_user_obj"] and hasattr(context["auth_user_obj"], "id"):
             user_id = context["auth_user_obj"].id
         elif context["user"]:
             user = model.User.get(context["user"])
