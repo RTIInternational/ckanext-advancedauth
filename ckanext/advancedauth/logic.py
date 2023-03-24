@@ -158,6 +158,8 @@ def custom_user_create(context, data_dict):
         body += toolkit.config.get("ckan.site_title", "") + " Team"
         mailer.mail_recipient(recipient_name, recipient_email, subject, body)
 
+    return user_dict
+
 
 # adds custom metadata to user show
 def custom_user_show(context, data_dict):
