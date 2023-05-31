@@ -82,10 +82,14 @@ def my_package_update(context, data_dict=None):
 def only_approved_users(context, data_dict=None):
     func = toolkit.get_action("organization_list_for_user")
     user_id = ""
-    try:
+    # If auth_user_obj exists in context, use it. Otherwise, use user_obj
+    if context.get("auth_user_obj", False) and hasattr(
+        context.get("auth_user_obj"), "id"):
         user_id = context.get("auth_user_obj").id
-    except AttributeError:
+    elif context.get("user_obj", False) and hasattr(context.get("user_obj"), "id"):
         user_id = context.get("user_obj").id
+    else:
+        return {"success": False}
 
     orgs = func({}, {"id": user_id})
     if len(orgs):
