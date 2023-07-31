@@ -125,7 +125,7 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     )
     only_approved_users_actions = [
         "package_show",
-        "user_list",
+        "user_list", # integration tool checks user_list access 
         "user_show",
         "organization_list",
     ]
