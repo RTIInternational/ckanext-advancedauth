@@ -6,6 +6,7 @@ from .model import advancedauthAudit
 
 log = logging.getLogger(__name__)
 
+
 # writes an audit object to the audit table
 def advancedauth_auditor(next_func, context, data_dict=None):
     func_name = next_func.__name__
@@ -125,7 +126,7 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     )
     only_approved_users_actions = [
         "package_show",
-        "user_list", # integration tool checks user_list access 
+        "user_list",  # integration tool checks user_list access
         "user_show",
         "organization_list",
     ]
@@ -133,7 +134,6 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     # run only_approved_users
     # this aborts with 403 if failed
     if only_approved_users_var and func_name in only_approved_users_actions:
-
         only_approved_users(context, data_dict)
 
     ## setup only_authors_can_edit
