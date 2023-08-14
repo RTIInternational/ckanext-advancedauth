@@ -299,15 +299,20 @@ def enforce_visibility_check(func_name):
         try:
             toolkit.check_access("sysadmin", context, {})
         except toolkit.NotAuthorized:
+            restricted_fields = [("private", True), ("integration_tool", False)]
             try:
                 # only sysadmins can change visibility on existing datasets
                 pkg = toolkit.get_action("package_show")(
-                    {"ignore_auth": True}, {"id": data_dict.get("name")}
+                    {"ignore_auth": True}, {"id": data_dict.get("id")}
                 )
-                data_dict["private"] = pkg["private"]
-            except ValidationError:
+                for field, default in restricted_fields:
+                    if field in pkg:
+                        data_dict[field] = pkg[field]
+            except:
                 # only sysadmins can make public datasets
-                data_dict["private"] = True
+                for field, default in restricted_fields:
+                    if field in data_dict:
+                        data_dict[field] = default
         return original_action(context, data_dict)
 
     func.__name__ = func_name
