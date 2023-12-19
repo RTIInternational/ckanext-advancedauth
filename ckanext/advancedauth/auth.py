@@ -1,5 +1,6 @@
 import logging
 import ckan.plugins.toolkit as toolkit
+from ckan.plugins.toolkit import auth_sysadmins_check
 import ckan.authz as authz
 import ckan.model as model
 from .model import advancedauthAudit
@@ -100,12 +101,24 @@ def only_approved_users(context, data_dict=None):
 
 @toolkit.auth_allow_anonymous_access
 @toolkit.chained_auth_function
+@auth_sysadmins_check
 def advancedauth_wrapper_function(next_func, context, data_dict=None):
     # run auditor
     advancedauth_auditor(next_func, context, data_dict)
 
     # get function name
     func_name = next_func.__name__
+
+    if func_name == "sysadmin":
+        username = context.get('user')
+        user = _get_user(username)
+        if user:
+            if user.is_deleted():
+                raise toolkit.NotAuthorized()
+            elif user.sysadmin:
+                return {"success": True}
+        else:
+            raise toolkit.NotAuthorized()
 
     ## setup variables for disallow_anonymous_access
     disallow_anonymous_access = toolkit.asbool(
@@ -157,3 +170,9 @@ def get_actions_list():
     for action in actions:
         actions_list[action] = advancedauth_wrapper_function
     return actions_list
+
+def _get_user(username):
+    if not username:
+        return None
+    # Get user object from the DB
+    return model.User.get(username)
