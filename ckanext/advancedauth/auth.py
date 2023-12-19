@@ -87,7 +87,11 @@ def only_approved_users(context, data_dict=None):
     try:
         user_id = context.get("auth_user_obj").id
     except AttributeError:
-        user_id = context.get("user_obj").id
+        try:
+            user_id = context.get("user_obj").id
+        except AttributeError:
+            user = _get_user(context.get("user"))
+            user_id = user.id
 
     orgs = func({}, {"id": user_id})
     if len(orgs):
@@ -109,16 +113,6 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     # get function name
     func_name = next_func.__name__
 
-    if func_name == "sysadmin":
-        username = context.get('user')
-        user = _get_user(username)
-        if user:
-            if user.is_deleted():
-                raise toolkit.NotAuthorized()
-            elif user.sysadmin:
-                return {"success": True}
-        else:
-            raise toolkit.NotAuthorized()
 
     ## setup variables for disallow_anonymous_access
     disallow_anonymous_access = toolkit.asbool(
@@ -132,6 +126,15 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     ## run advancedauth_check_access
     if disallow_anonymous_access and func_name not in action_allowlist:
         advancedauth_check_access(next_func, context, data_dict)
+    
+    # if user is sysadmin, skip all checks
+    username = context.get('user', "")
+    user = _get_user(username)
+    if user:
+        if user.is_deleted():
+            raise toolkit.NotAuthorized()
+        elif user.sysadmin:
+            return {"success": True}
 
     # set up variables for only_approved_users
     only_approved_users_var = toolkit.asbool(
