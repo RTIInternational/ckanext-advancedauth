@@ -73,45 +73,24 @@ def list_users():
     }
 
 
-@audit_table.route("/getresources")
-def list_resources():
+@audit_table.route("/getpackages")
+def list_packages():
     if toolkit.g.userobj and toolkit.g.userobj.sysadmin:
         packages = current_package_list_with_resources(
             {"user": toolkit.g.userobj.name, "model": model}, {}
         )
-        resource_lst = []
-        for package in packages:
-            for resource in package.get("resources", []):
-                resource["package_name"] = package["title"]
-                resource_lst.append(resource)
-        return {
-            resource["id"]: {k: v for k, v in resource.items()}
-            for resource in resource_lst
-        }
+        return {package["id"] : {k: v for k,v in package.items()} for package in packages}
     return {
         "error": "User must be logged in as a sysadmin in order to access this API endpoint."
     }
 
 
 def map_row_data(row):
-    resource_name = ""
-    package_name = ""
-    try:
-        resource_name = resource_show({"model": model}, {"id": row.resource_id})["name"]
-    except (NotFound, ValidationError):
-        resource_name = ""
-    try:
-        package_name = package_show({"model": model}, {"id": row.package_id})["name"]
-    except (NotFound, ValidationError):
-        package_name = ""
     return {
         "id": row.id,
         "user_id": row.user_id,
-        "username": user_show({"model": model}, {"id": row.user_id})["name"],
         "action": row.action,
         "package_id": row.package_id,
-        "package_name": package_name,
         "resource_id": row.resource_id,
-        "resource_name": resource_name,
         "timestamp": row.timestamp,
     }
