@@ -113,7 +113,6 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     # get function name
     func_name = next_func.__name__
 
-
     ## setup variables for disallow_anonymous_access
     disallow_anonymous_access = toolkit.asbool(
         toolkit.config.get("ckanext.advancedauth.disallow_anonymous_access") or False
@@ -126,9 +125,9 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     ## run advancedauth_check_access
     if disallow_anonymous_access and func_name not in action_allowlist:
         advancedauth_check_access(next_func, context, data_dict)
-    
+
     # if user is sysadmin, skip all checks
-    username = context.get('user', "")
+    username = context.get("user", "")
     user = _get_user(username)
     if user:
         if user.is_deleted():
@@ -173,6 +172,7 @@ def get_actions_list():
     for action in actions:
         actions_list[action] = advancedauth_wrapper_function
     return actions_list
+
 
 def _get_user(username):
     if not username:
