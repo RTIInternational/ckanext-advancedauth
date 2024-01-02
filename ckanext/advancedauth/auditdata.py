@@ -12,7 +12,8 @@ from ckan.logic import NotFound, ValidationError
 from flask import Blueprint
 
 from .model import advancedauthAudit
-
+from ckan.model import meta, Package, Resource
+from sqlalchemy.orm import joinedload
 
 audit_table = Blueprint("audit_table", __name__)
 
@@ -76,10 +77,17 @@ def list_users():
 @audit_table.route("/getpackages")
 def list_packages():
     if toolkit.g.userobj and toolkit.g.userobj.sysadmin:
-        packages = current_package_list_with_resources(
-            {"user": toolkit.g.userobj.name, "model": model}, {}
-        )
-        return {package["id"] : {k: v for k,v in package.items()} for package in packages}
+        session = meta.Session
+        packages = session.query(Package).options(joinedload(Package.resources_all)).all()
+        return {
+            package.id: {
+                'id': package.id,
+                'name': package.name,
+                'resources': [
+                    {'id': resource.id, 'name': resource.name} for resource in package.resources_all
+                ]
+            } for package in packages
+        }
     return {
         "error": "User must be logged in as a sysadmin in order to access this API endpoint."
     }
