@@ -24,11 +24,11 @@ advancedauth_audit_table = Table(
     "advancedauth_audit",
     metadata,
     Column("id", types.UnicodeText, primary_key=True, default=make_uuid),
-    Column("user_id", types.UnicodeText, ForeignKey("user.id"), index=True),
+    Column("user_id", types.UnicodeText, ForeignKey("user.id")),
     Column("action", types.UnicodeText),
-    Column("package_id", types.UnicodeText, index=True),
+    Column("package_id", types.UnicodeText),
     Column("resource_id", types.UnicodeText),
-    Column("timestamp", types.DateTime, default=datetime.datetime.utcnow, index=True),
+    Column("timestamp", types.DateTime, default=datetime.datetime.utcnow),
 )
 
 

@@ -10,17 +10,14 @@ from ckan.logic.action.get import (
 import ckan.model as model
 from ckan.logic import NotFound, ValidationError
 from flask import Blueprint
-from flask_cors import CORS, cross_origin
 
 from .model import advancedauthAudit
 from ckan.model import meta, Package, Resource
 from sqlalchemy.orm import joinedload
 
 audit_table = Blueprint("audit_table", __name__)
-cors = CORS(audit_table)
 
 
-@cross_origin()
 @audit_table.route("/audituser")
 def user_audit():
     if toolkit.g.userobj and toolkit.g.userobj.sysadmin:
@@ -36,7 +33,6 @@ def user_audit():
     }
 
 
-@cross_origin()
 @audit_table.route("/auditfile")
 def file_audit():
     if toolkit.g.userobj and toolkit.g.userobj.sysadmin:
@@ -52,7 +48,6 @@ def file_audit():
     }
 
 
-@cross_origin()
 @audit_table.route("/auditdates")
 def date_audit():
     if toolkit.g.userobj and toolkit.g.userobj.sysadmin:
@@ -69,7 +64,6 @@ def date_audit():
     }
 
 
-@cross_origin()
 @audit_table.route("/getusers")
 def list_users():
     if toolkit.g.userobj and toolkit.g.userobj.sysadmin:
@@ -80,7 +74,6 @@ def list_users():
     }
 
 
-@cross_origin()
 @audit_table.route("/getpackages")
 def list_packages():
     if toolkit.g.userobj and toolkit.g.userobj.sysadmin:
