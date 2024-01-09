@@ -26,78 +26,95 @@
     </div>
     {{ form.checkbox('remember', label=_("Remember me"), id='field-remember', checked=true, value="63072000") }}
 
-    <!-- advancedauth terms of service -->
-    {% if h.advancedauth_privacy_policy() or h.advancedauth_terms_of_service() %}
-    <hr />
-    {% endif %}
-    
-    {% if h.advancedauth_terms_of_service() %}
-      <div class="advancedauth_terms_of_service">
-        {% block advancedauth_terms_of_service_inline %}
-          {% snippet h.advancedauth_inline_dua() %}
-        {% endblock %}
-        {% block advancedauth_terms_of_service_download %}
-          <a 
-          class="btn btn-primary" 
-          aria-label="open terms of service in another tab" 
-          target="_blank"
-          download
-          href="/{{h.advancedauth_terms_of_service()}}">
-          {% block advancedauth_terms_of_service_button_label %}
-            Download {{ tos }}
+    {% block login_button %}
+      <div style="text-align: left">
+        <!-- advancedauth line decorator -->
+        {% if h.advancedauth_privacy_policy() or h.advancedauth_terms_of_service() %}
+        <hr />
+        {% endif %}
+
+        <!-- advancedauth terms of service -->
+        {% if h.advancedauth_terms_of_service() %}
+          <div class="advancedauth_terms_of_service">
+            {% block advancedauth_terms_of_service_inline %}
+              {% snippet h.advancedauth_inline_dua() %}
+            {% endblock %}
+            {% block advancedauth_terms_of_service_download %}
+              <a 
+              class="btn btn-primary" 
+              aria-label="open terms of service in another tab" 
+              target="_blank"
+              download
+              href="/{{h.advancedauth_terms_of_service()}}">
+              {% block advancedauth_terms_of_service_button_label %}
+                Download {{ tos }}
+              {% endblock %}
+              </a>
+            {% endblock %}
+            {{ form.checkbox('advancedauth_terms_of_service', id="field-advancedauth_terms_of_service", label=_("By checking this box, I certify that I have read and agree to the above " + tos), value=True, checked=false, classes=["control-medium"], is_required=True) }}
+          </div>
+        {% endif %}
+
+        <!-- advancedauth privacy policy -->
+        {% if h.advancedauth_privacy_policy() %}
+          <div class="advancedauth_privacy_policy">
+            {% block advancedauth_privacy_policy_inline %}
+              {% snippet h.advancedauth_inline_privacy_policy() %}
+            {% endblock %}
+            {% block advancedauth_privacy_policy_download %}
+              <a 
+              class="btn btn-primary" 
+              aria-label="open privacy policy in another tab" 
+              target="_blank"
+              download
+              href="/{{h.advancedauth_privacy_policy()}}">
+              {% block advancedauth_privacy_policy_button_label %}
+                Download {{ pp }}
+              {% endblock %}
+              </a>
+            {% endblock %}
+          </div>
+        {% endif %}
+        {% if h.advancedauth_privacy_policy() or h.advancedauth_terms_of_service() %}
+        <hr />
+        {% endif %}
+
+        <!-- advancedauth disclaimer -->
+        {{ form.required_message() }}
+        <div class="advancedauth_disclaimer">
+          {% block advancedauth_disclaimer %}
           {% endblock %}
-          </a>
-        {% endblock %}
-        {{ form.checkbox('advancedauth_terms_of_service', id="field-advancedauth_terms_of_service", label=_("By checking this box, I certify that I have read and agree to the above " + tos), value=True, checked=false, classes=["control-medium"], is_required=True) }}
-      </div>
-    {% endif %}
+        </div>
+      
+        <div class="form-actions"> 
+          <button class="btn btn-primary" id="login_button" type="submit" disabled="{{h.advancedauth_must_view_terms_of_service()}}">
+            {{ _('Login') }}
+          </button>
+          <!-- advancedauth helper text -->
+          {% if h.advancedauth_must_view_terms_of_service() %}
+            <br />
+            <span class="small" id="must-view-tos">Please view the {{tos}} prior to creating an account</span>
+          {% endif %}
+          {% if h.advancedauth_must_view_privacy_policy() %}
+            <br />
+            <span class="small" id="must-view-privacy_policy">Please view the {{pp}} prior to creating an account</span>
+          {% endif %}
+          <!-- end advancedauth helper text -->
+        </div>
 
-    <!-- advancedauth privacy policy -->
-    {% if h.advancedauth_privacy_policy() %}
-      <div class="advancedauth_privacy_policy">
-        {% block advancedauth_privacy_policy_inline %}
-          {% snippet h.advancedauth_inline_privacy_policy() %}
-        {% endblock %}
-        {% block advancedauth_privacy_policy_download %}
-          <a 
-          class="btn btn-primary" 
-          aria-label="open privacy policy in another tab" 
-          target="_blank"
-          download
-          href="/{{h.advancedauth_privacy_policy()}}">
-          {% block advancedauth_privacy_policy_button_label %}
-            Download {{ pp }}
-          {% endblock %}
-          </a>
-        {% endblock %}
-      </div>
-    {% endif %}
-    {% if h.advancedauth_privacy_policy() or h.advancedauth_terms_of_service() %}
-    <hr />
-    {% endif %}
-
-    <!-- advancedauth disclaimer -->
-    {{ form.required_message() }}
-    <div class="advancedauth_disclaimer">
-      {% block advancedauth_disclaimer %}
-      {% endblock %}
-    </div>
-
-    <div class="form-actions">
-      {% block login_button %}
-      <button class="btn btn-primary" id="login_button" type="submit" disabled="{{h.advancedauth_must_view_terms_of_service()}}">{{ _('Login') }}</button>
-        <!-- advancedauth helper text -->
+        <!-- advancedauth toggle login disable -->
         {% if h.advancedauth_must_view_terms_of_service() %}
-          <br />
-          <span class="small" id="must-view-tos">Please view the {{tos}} prior to creating an account</span>
+          <script type="text/javascript">
+            let dua_viewed = document.getElementById('field-advancedauth_terms_of_service')
+            dua_viewed.onchange = function () {
+              document.getElementById('login_button').disabled = !this.checked
+              document.getElementById('must-view-tos').setAttribute('style', 'display:none;')
+            }
+          </script>
         {% endif %}
-        {% if h.advancedauth_must_view_privacy_policy() %}
-          <br />
-          <span class="small" id="must-view-privacy_policy">Please view the {{pp}} prior to creating an account</span>
-        {% endif %}
-        <!-- end advancedauth helper text -->
-      {% endblock %}
-    </div>
+        
+      </div>
+    {% endblock %}
   </div>
 
   <!-- ckanext-security mfa code request -->
@@ -127,15 +144,4 @@
   {% endif %}
 
 </form>
-
-{% if h.advancedauth_must_view_terms_of_service() %}
-  <script type="text/javascript">
-    let dua_viewed = document.getElementById('field-advancedauth_terms_of_service')
-    dua_viewed.onchange = function () {
-      document.getElementById('login_button').disabled = !this.checked
-      document.getElementById('must-view-tos').setAttribute('style', 'display:none;')
-    }
-  </script>
-{% endif %}
-
 {% endblock %}
