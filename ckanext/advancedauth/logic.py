@@ -2,7 +2,9 @@ import datetime
 
 import ckan.plugins.toolkit as toolkit
 import ckan.lib.mailer as mailer
-
+import ckan.model as model
+from ckan.plugins.toolkit import chained_action
+from ckan.logic import ValidationError
 from ckan.logic.action.create import user_create
 from ckan.logic.action.get import user_show
 from ckan.logic.action.update import user_update
@@ -55,7 +57,6 @@ def _modify_user_schema(context, mode):
 
 # intercepts user creation and gathers new data
 def custom_user_create(context, data_dict):
-
     if context.get("ignore_auth"):
         # Allow CKAN CLI to create sysadmin
         return user_create(context, data_dict)
@@ -288,6 +289,36 @@ def custom_user_delete(context, data_dict):
     model.repo.commit()
 
 
+# Sysadmins have access to the original package functions
+# Non-admin users have restrictions on dataset visibility
+def enforce_visibility_check(func_name):
+    # CKAN chained_action decorator requires function to be named the same as original
+    # https://docs.ckan.org/en/2.9/extensions/plugin-interfaces.html#ckan.plugins.interfaces.IActions
+    @chained_action
+    def func(original_action, context, data_dict):
+        try:
+            toolkit.check_access("sysadmin", context, {})
+        except toolkit.NotAuthorized:
+            restricted_fields = [("private", True), ("integration_tool", False)]
+            try:
+                # only sysadmins can change visibility on existing datasets
+                pkg = toolkit.get_action("package_show")(
+                    {"ignore_auth": True}, {"id": data_dict.get("id")}
+                )
+                for field, default in restricted_fields:
+                    if field in pkg:
+                        data_dict[field] = pkg[field]
+            except:
+                # only sysadmins can make public datasets
+                for field, default in restricted_fields:
+                    if field in data_dict:
+                        data_dict[field] = default
+        return original_action(context, data_dict)
+
+    func.__name__ = func_name
+    return func
+
+
 # returns our new custom actions overriding the basic action names, and returns the framework actions as ckan_<action> for compatibility if needed
 actions = {
     "user_create": custom_user_create,
@@ -298,4 +329,7 @@ actions = {
     "ckan_user_show": user_show,
     "ckan_user_create": user_create,
     "ckan_user_delete": user_delete,
+    "package_create": enforce_visibility_check("package_create"),
+    "package_update": enforce_visibility_check("package_update"),
+    "package_revise": enforce_visibility_check("package_revise"),
 }
