@@ -89,17 +89,18 @@ def only_approved_users(context, data_dict=None):
         user_id = context.get("auth_user_obj").id
     elif context.get("user_obj", False) and hasattr(context.get("user_obj"), "id"):
         user_id = context.get("user_obj").id
-    else:
-        return {"success": False}
 
-    orgs = func({}, {"id": user_id})
-    if len(orgs):
-        return {"success": True}
-    approval_message = toolkit.config.get(
-        "ckanext.advancedauth.only_approved_users_message",
-        "Your account is pending approval",
-    )
-    toolkit.abort(403, approval_message)
+    if user_id:
+        orgs = func({}, {"id": user_id})
+        if len(orgs):
+            return {"success": True}
+        approval_message = toolkit.config.get(
+            "ckanext.advancedauth.only_approved_users_message",
+            "Your account is pending approval",
+        )
+        toolkit.abort(403, approval_message)
+    else:
+        raise toolkit.NotAuthorized("You must be logged in to access this feature")
 
 
 @toolkit.auth_allow_anonymous_access
