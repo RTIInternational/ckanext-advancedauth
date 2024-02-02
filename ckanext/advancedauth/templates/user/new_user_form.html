@@ -118,6 +118,16 @@
   </div>
 </form>
 
+<script type="text/javascript">
+  var errors = document.querySelectorAll('.error-explanation li');
+  errors.forEach(function(error) {
+    // replace 'Password1:' and 'Password2:' with 'Password:'
+    var text = error.textContent;
+    text = text.replace("Password1:", "Password:").replace("Password2:", "Password:");
+    error.textContent = text;
+  });
+</script>
+
 {% if h.advancedauth_must_view_terms_of_service() %}
 <script type="text/javascript">
   let dua_viewed = document.getElementById('field-advancedauth_terms_of_service')
