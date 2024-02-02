@@ -7,6 +7,10 @@
   {{ form.input("fullname", id="field-fullname", label=_("Full Name"), placeholder=_("First and Last Name"), value=data.fullname, error=errors.fullname, classes=["control-medium"], is_required=fullname_req) }}
 
   {{ form.input("email", id="field-email", label=_("Email (Institutional Email Preferred)"), type="email", placeholder=_("email@yourinstitution.org"), value=data.email, error=errors.email, classes=["control-medium"], is_required=True) }}
+      <!-- Helper text for the password field -->
+  <p id="password-help" class="form-text">
+    {{ _("Your password must be at least ten characters and include at least three of the following types of characters: capital letters, lower case letters, digits and special characters.") }}
+  </p>
   {{ form.input("password1", id="field-password", label=_("Password"), type="password", placeholder="••••••••", value=data.password1, error=errors.password1, classes=["control-medium"], is_required=True) }}
   {{ form.input("password2", id="field-confirm-password", label=_("Confirm"), type="password", placeholder="••••••••", value=data.password2, error=errors.password2, classes=["control-medium"], is_required=True) }}
 
