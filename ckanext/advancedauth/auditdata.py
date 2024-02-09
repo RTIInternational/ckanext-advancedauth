@@ -1,12 +1,5 @@
 from ckan.common import request
 import ckan.plugins.toolkit as toolkit
-from ckan.logic.action.get import (
-    user_show,
-    user_list,
-    current_package_list_with_resources,
-    resource_show,
-    package_show,
-)
 import ckan.model as model
 from ckan.logic import NotFound, ValidationError
 from flask import Blueprint
@@ -67,7 +60,7 @@ def date_audit():
 @audit_table.route("/getusers")
 def list_users():
     if toolkit.g.userobj and toolkit.g.userobj.sysadmin:
-        users = user_list({"model": model}, {})
+        users = toolkit.get_action("user_list")(data_dict={})
         return {user["id"]: {k: v for k, v in user.items()} for user in users}
     return {
         "error": "User must be logged in as a sysadmin in order to access this API endpoint."
