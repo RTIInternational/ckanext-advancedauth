@@ -87,11 +87,7 @@ def only_approved_users(context, data_dict=None):
     try:
         user_id = context.get("auth_user_obj").id
     except AttributeError:
-        try:
-            user_id = context.get("user_obj").id
-        except AttributeError:
-            user = _get_user(context.get("user"))
-            user_id = user.id
+        user_id = context.get("user_obj").id
 
     orgs = func({}, {"id": user_id})
     if len(orgs):
@@ -127,10 +123,9 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
         advancedauth_check_access(next_func, context, data_dict)
 
     # if user is sysadmin, skip all checks
-    username = context.get("user", "")
-    user = _get_user(username)
+    user = context.get("auth_user_obj", "")
     if user:
-        if user.is_deleted():
+        if not user.state == "active":
             raise toolkit.NotAuthorized()
         elif user.sysadmin:
             return {"success": True}
@@ -172,10 +167,3 @@ def get_actions_list():
     for action in actions:
         actions_list[action] = advancedauth_wrapper_function
     return actions_list
-
-
-def _get_user(username):
-    if not username:
-        return None
-    # Get user object from the DB
-    return model.User.get(username)
