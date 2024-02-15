@@ -1,0 +1,15 @@
+{% ckan_extends %}
+{{ super() }}
+{% block secondary_content %}
+{% block help %}
+<section class="module module-narrow module-shallow">
+  {% block help_inner %}
+  <h2 class="module-heading">{{ _('How does this work?') }}</h2>
+  <div class="module-content">
+    <p>{% trans %}Simply enter a new password and we'll update your account{% endtrans %}. 
+    Your password must be 10 characters or longer, and consist of at least three of the following character sets: uppercase characters, lowercase characters, digits, punctuation & special characters. </p>
+  </div>
+  {% endblock %}
+</section>
+{% endblock %}
+{% endblock %}
