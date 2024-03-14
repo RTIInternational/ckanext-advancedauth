@@ -60,91 +60,89 @@ class ExtendedEditView(EditView):
     # Adds update_password_date
     def post(self, id=None):
         context, id = self._prepare(id)
-        if not context[u'save']:
+        if not context["save"]:
             return self.get(id)
 
         try:
             data_dict = logic.clean_dict(
                 dictization_functions.unflatten(
-                    logic.tuplize_dict(logic.parse_params(request.form))))
-            data_dict.update(logic.clean_dict(
-                dictization_functions.unflatten(
-                    logic.tuplize_dict(logic.parse_params(request.files))))
+                    logic.tuplize_dict(logic.parse_params(request.form))
+                )
+            )
+            data_dict.update(
+                logic.clean_dict(
+                    dictization_functions.unflatten(
+                        logic.tuplize_dict(logic.parse_params(request.files))
+                    )
+                )
             )
 
         except dictization_functions.DataError:
-            base.abort(400, _(u'Integrity Error'))
-        data_dict.setdefault(u'activity_streams_email_notifications', False)
+            base.abort(400, _("Integrity Error"))
+        data_dict.setdefault("activity_streams_email_notifications", False)
 
-        context[u'message'] = data_dict.get(u'log_message', u'')
-        data_dict[u'id'] = id
+        context["message"] = data_dict.get("log_message", "")
+        data_dict["id"] = id
 
-        if (data_dict[u'password1']
-                and data_dict[u'password2']):
-            identity = {
-                u'login': g.user,
-                u'password': data_dict[u'old_password']
-            }
+        if data_dict["password1"] and data_dict["password2"]:
+            identity = {"login": g.user, "password": data_dict["old_password"]}
             auth = authenticator.UsernamePasswordAuthenticator()
 
             if auth.authenticate(request.environ, identity) != g.user:
-                errors = {
-                    u'oldpassword': [_(u'Password entered was incorrect')]
-                }
-                error_summary = {_(u'Old Password'): _(u'incorrect password')}\
-                    if not g.userobj.sysadmin \
-                    else {_(u'Sysadmin Password'): _(u'incorrect password')}
+                errors = {"oldpassword": [_("Password entered was incorrect")]}
+                error_summary = (
+                    {_("Old Password"): _("incorrect password")}
+                    if not g.userobj.sysadmin
+                    else {_("Sysadmin Password"): _("incorrect password")}
+                )
                 return self.get(id, data_dict, errors, error_summary)
 
         try:
-            user = logic.get_action(u'ckan_user_update')(context, data_dict)
+            user = logic.get_action("ckan_user_update")(context, data_dict)
         except logic.NotAuthorized:
-            base.abort(403, _(u'Unauthorized to edit user %s') % id)
+            base.abort(403, _("Unauthorized to edit user %s") % id)
         except logic.NotFound:
-            base.abort(404, _(u'User not found'))
+            base.abort(404, _("User not found"))
         except logic.ValidationError as e:
             errors = e.error_dict
             error_summary = e.error_summary
             return self.get(id, data_dict, errors, error_summary)
 
-        h.flash_success(_(u'Password updated'))
+        h.flash_success(_("Password updated"))
         ae.update_password_date(data_dict["id"], "password_last_reset_date")
-        resp = h.redirect_to(u'user.read', id=user[u'name'])
+        resp = h.redirect_to("user.read", id=user["name"])
         return resp
 
     def get(self, id=None, data=None, errors=None, error_summary=None):
         context, id = self._prepare(id)
-        data_dict = {u'id': id}
+        data_dict = {"id": id}
 
-        current_user = context.get(u'auth_user_obj').id
+        current_user = context.get("auth_user_obj").id
         if current_user != id:
-            base.abort(403, _(u'Unauthorized to edit user %s') % u'')
-            
-        try:
-            old_data = logic.get_action(u'user_show')(context, data_dict)
+            base.abort(403, _("Unauthorized to edit user %s") % "")
 
-            g.display_name = old_data.get(u'display_name')
-            g.user_name = old_data.get(u'name')
+        try:
+            old_data = logic.get_action("user_show")(context, data_dict)
+
+            g.display_name = old_data.get("display_name")
+            g.user_name = old_data.get("name")
 
             data = data or old_data
 
         except logic.NotAuthorized:
-            base.abort(403, _(u'Unauthorized to edit user %s') % u'')
+            base.abort(403, _("Unauthorized to edit user %s") % "")
         except logic.NotFound:
-            base.abort(404, _(u'User not found'))
-
+            base.abort(404, _("User not found"))
 
         errors = errors or {}
-        extra_vars = {
-            u'data': data,
-            u'errors': errors,
-            u'error_summary': error_summary
-        }
+        extra_vars = {"data": data, "errors": errors, "error_summary": error_summary}
 
-        return base.render(u'user/required_reset.html', extra_vars)
+        return base.render("user/required_reset.html", extra_vars)
 
 
 advancedauth_user.add_url_rule(
     "/reset/<id>", view_func=ExtendedPerformResetView.as_view(str("perform_reset"))
 )
-advancedauth_user.add_url_rule("/required_reset/<id>", view_func=ExtendedEditView.as_view(str("required_reset")))
+advancedauth_user.add_url_rule(
+    "/required_reset/<id>", view_func=ExtendedEditView.as_view(str("required_reset"))
+)

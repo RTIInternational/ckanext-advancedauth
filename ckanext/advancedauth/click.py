@@ -20,10 +20,12 @@ def reset_password(username):
     advancedauth reset_password <username>
     """
     if username is None:
-        print('Setting all non-admin users to reset their password upon next login')
+        print("Setting all non-admin users to reset their password upon next login")
         reset_all_users_passwords()
     else:
-        print("Setting user {} to reset their password upon next login".format(username))
+        print(
+            "Setting user {} to reset their password upon next login".format(username)
+        )
         reset_user_password(username)
 
 
