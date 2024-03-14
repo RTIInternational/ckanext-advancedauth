@@ -8,6 +8,7 @@ from .model import initdb
 from .auditdata import audit_table
 from .middleware import advancedauthMiddleware, advancedauthErrorLogMiddleware
 from .click import get_commands
+from .blueprint import advancedauth_user
 
 
 class AdvancedauthPlugin(plugins.SingletonPlugin):
@@ -25,7 +26,7 @@ class AdvancedauthPlugin(plugins.SingletonPlugin):
     # Return a Flask Blueprint object to be registered by the app         #
     #######################################################################
     def get_blueprint(self):
-        return audit_table
+        return [audit_table, advancedauth_user]
 
     # IConfigurer
     # Adds templates to CKAN
