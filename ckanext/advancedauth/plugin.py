@@ -6,6 +6,7 @@ from .helpers import helpers
 from .logic import actions
 from .model import initdb
 from .auditdata import audit_table
+from .middleware import advancedauthMiddleware, advancedauthErrorLogMiddleware
 
 
 class AdvancedauthPlugin(plugins.SingletonPlugin):
@@ -15,6 +16,7 @@ class AdvancedauthPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IAuthFunctions, inherit=True)
     plugins.implements(plugins.ITemplateHelpers)
     plugins.implements(plugins.IBlueprint)
+    plugins.implements(plugins.IMiddleware)
 
     #######################################################################
     # IBlueprint                                                          #
@@ -49,3 +51,12 @@ class AdvancedauthPlugin(plugins.SingletonPlugin):
     # makes functions available in templates
     def get_helpers(self):
         return helpers
+
+    # IMiddleware
+    def make_middleware(self, app, config):
+        app = advancedauthMiddleware(app, config)
+        return app
+
+    def make_error_log_middleware(self, app, config):
+        app = advancedauthErrorLogMiddleware(app)
+        return app
