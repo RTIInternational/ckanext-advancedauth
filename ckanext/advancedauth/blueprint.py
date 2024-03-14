@@ -107,7 +107,7 @@ class ExtendedEditView(EditView):
             error_summary = e.error_summary
             return self.get(id, data_dict, errors, error_summary)
 
-        h.flash_success(_(u'Profile updated'))
+        h.flash_success(_(u'Password updated'))
         ae.update_password_date(data_dict["id"], "password_last_reset_date")
         resp = h.redirect_to(u'user.read', id=user[u'name'])
         return resp
