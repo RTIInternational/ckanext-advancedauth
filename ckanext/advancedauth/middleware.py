@@ -37,14 +37,14 @@ class advancedauthMiddleware:
         if (
             userid
             and path_info not in self.overrides
-            and not path_info.startswith("/user/required_reset")
+            and not path_info.startswith("/user/reset")
         ):
             # username is not stored in advancedauth table and id is not available in identity
             sql = """
                     SELECT 
                         advancedauth_extras.key, 
                         advancedauth_extras.value,
-                        advancedauth_extras.user_id
+                        "user".name
                     FROM 
                         "user"
                     INNER JOIN 
@@ -58,10 +58,10 @@ class advancedauthMiddleware:
 
             if self.is_password_reset_required(rows):
                 first_row = rows[0]
-                user_id = first_row[
+                username = first_row[
                     2
                 ]  # each row from sql query has shape (key, value, user_id)
-                response = redirect(f"/user/required_reset/{user_id}")
+                response = redirect(f"/user/reset?name={username}")
                 return response(environ, start_response)
 
         # continue with the original application flow if not logged in or no reset required
