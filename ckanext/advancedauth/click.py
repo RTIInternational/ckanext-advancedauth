@@ -15,13 +15,19 @@ def advancedauth():
 
 @advancedauth.command()
 @click.option("--username", default=None, help="Username of user to reset password")
-def reset_password(username):
+@click.option(
+    "--all", is_flag=True, help="Include sysadmins in password reset requirement"
+)
+def reset_password(username, all=False):
     """
     advancedauth reset_password <username>
     """
     if username is None:
-        print("Setting all non-admin users to reset their password upon next login")
-        reset_all_users_passwords()
+        if all:
+            print("Setting all users to reset their password upon next login")
+        else:
+            print("Setting all non-admin users to reset their password upon next login")
+        reset_all_users_passwords(all)
     else:
         print(
             "Setting user {} to reset their password upon next login".format(username)

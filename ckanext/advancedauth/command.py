@@ -13,10 +13,13 @@ def sysadmin_context():
     return {"ignore_auth": True, "user": user["name"], "auth_user_obj": None}
 
 
-def reset_all_users_passwords():
+def reset_all_users_passwords(include_sysadmins=False):
     context = sysadmin_context()
     users = toolkit.get_action("user_list")(context, {})
-    user_ids = [user.get("id") for user in users if not user.get("sysadmin", False)]
+    user_ids = [user.get("id") for user in users]
+    if not include_sysadmins:
+        user_ids = [user.get("id") for user in users if not user.get("sysadmin", False)]
+
     for userid in user_ids:
         advancedauthExtras.update_password_date(
             userid=userid, key="password_reset_required_date"
