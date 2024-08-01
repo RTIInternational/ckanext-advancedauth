@@ -1,4 +1,5 @@
 """Tests for plugin.py."""
+
 import pytest
 import ckan.plugins.toolkit as toolkit
 import ckan.logic as logic
