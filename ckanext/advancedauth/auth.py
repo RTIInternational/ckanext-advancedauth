@@ -86,7 +86,8 @@ def only_approved_users(context, data_dict=None):
     user_id = ""
     # If auth_user_obj exists in context, use it. Otherwise, use user_obj
     if context.get("auth_user_obj", False) and hasattr(
-        context.get("auth_user_obj"), "id"):
+        context.get("auth_user_obj"), "id"
+    ):
         user_id = context.get("auth_user_obj").id
     elif context.get("user_obj", False) and hasattr(context.get("user_obj"), "id"):
         user_id = context.get("user_obj").id
@@ -129,11 +130,10 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
 
     # if user is sysadmin, skip all checks
     user = context.get("auth_user_obj", "")
-    if user:
+    if user and hasattr(user, "sysadmin") and user.sysadmin:
         if not user.state == "active":
             raise toolkit.NotAuthorized()
-        elif user.sysadmin:
-            return {"success": True}
+        return {"success": True}
 
     # set up variables for only_approved_users
     only_approved_users_var = toolkit.asbool(
