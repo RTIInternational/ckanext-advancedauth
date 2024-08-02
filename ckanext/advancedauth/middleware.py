@@ -4,9 +4,11 @@ from dateutil import parser
 from werkzeug.wrappers import Request
 from werkzeug.utils import redirect
 from werkzeug.exceptions import HTTPException
+import base64
+import re
 
 
-class advancedauthMiddleware:
+class AdvancedauthMiddleware:
     def __init__(self, app, config):
         self.app = app
         self.engine = sa.create_engine(config.get("sqlalchemy.url"))
@@ -21,6 +23,7 @@ class advancedauthMiddleware:
             "/dataset",
             "/about",
         ]
+        self.session_cookie_name = config.get("beaker.session.key")
 
     def __call__(self, environ, start_response):
         request = Request(environ)
@@ -31,37 +34,48 @@ class advancedauthMiddleware:
         if any(path_info.startswith(p) for p in static_paths):
             return self.app(environ, start_response)
 
-        # check if the user is logged in before executing sql query
-        identity = request.environ.get("repoze.who.identity", {})
-        userid = identity.get("repoze.who.userid", None)
+        session = request.cookies.get(self.session_cookie_name)
+
+        userid = None
+        if session:
+            session = str(base64.b64decode(session))
+
+            # pickled session data so we need to extract the user_id
+            # get the substring between 'user_idq' and the next 'q'
+            pattern = r"user_idq(.*?)q"
+            match = re.search(pattern, session)
+            if match:
+                userid = match[0]
+
+        if userid:
+            # extract the 36-character user_id from the matched substring
+            pattern = r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
+            match = re.search(pattern, userid)[0]
+            if match:
+                userid = match
+
         if (
             userid
             and path_info not in self.overrides
             and not path_info.startswith("/user/reset")
         ):
-            # username is not stored in advancedauth table and id is not available in identity
+
             sql = """
                     SELECT 
                         advancedauth_extras.key, 
                         advancedauth_extras.value,
-                        "user".name
+                        advancedauth_extras.user_id
                     FROM 
-                        "user"
-                    INNER JOIN 
-                        advancedauth_extras ON "user".id = advancedauth_extras.user_id
+                        "advancedauth_extras"
                     WHERE 
-                        "user".name = %s
+                        advancedauth_extras.user_id = %s
                         AND advancedauth_extras.key IN ('password_last_reset_date', 'password_reset_required_date')
                   """
             res = self.engine.execute(sql, userid)
             rows = [row for row in res]
 
             if self.is_password_reset_required(rows):
-                first_row = rows[0]
-                username = first_row[
-                    2
-                ]  # each row from sql query has shape (key, value, user_id)
-                response = redirect(f"/user/reset?name={username}")
+                response = redirect(f"/user/reset?id={userid}")
                 return response(environ, start_response)
 
         # continue with the original application flow if not logged in or no reset required
@@ -88,7 +102,7 @@ class advancedauthMiddleware:
         return False
 
 
-class advancedauthErrorLogMiddleware:
+class AdvancedauthErrorLogMiddleware:
     def __init__(self, app):
         self.app = app
         self.logger = logging.getLogger(__name__)

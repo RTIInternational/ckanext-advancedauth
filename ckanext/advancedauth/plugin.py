@@ -6,7 +6,7 @@ from .helpers import helpers
 from .logic import actions
 from .model import initdb
 from .auditdata import audit_table
-from .middleware import advancedauthMiddleware, advancedauthErrorLogMiddleware
+from .middleware import AdvancedauthMiddleware, AdvancedauthErrorLogMiddleware
 from .click import get_commands
 from .blueprint import advancedauth_user
 
@@ -57,11 +57,11 @@ class AdvancedauthPlugin(plugins.SingletonPlugin):
 
     # IMiddleware
     def make_middleware(self, app, config):
-        app = advancedauthMiddleware(app, config)
+        app = AdvancedauthMiddleware(app, config)
         return app
 
     def make_error_log_middleware(self, app, config):
-        app = advancedauthErrorLogMiddleware(app)
+        app = AdvancedauthErrorLogMiddleware(app)
         return app
 
     # IClick
