@@ -6,7 +6,7 @@ import ckan.logic as logic
 import ckan.model as model
 import ckan.lib.authenticator as authenticator
 
-from ckan.common import _, g, request
+from ckan.common import _, g, request, current_user
 from ckan.views.user import PerformResetView, RequestResetView
 from .model import advancedauthExtras as ae
 from six import text_type
@@ -20,7 +20,9 @@ advancedauth_user = Blueprint("advancedauth_user", __name__, url_prefix="/user")
 
 
 class ExtendedRequestResetView(RequestResetView):
-    pass
+    def get(self) -> str:
+        self._prepare()
+        return base.render("user/request_reset.html", {"username": current_user.name})
 
 
 class ExtendedPerformResetView(PerformResetView):
@@ -60,7 +62,7 @@ class ExtendedPerformResetView(PerformResetView):
 
 
 advancedauth_user.add_url_rule(
-    "/reset", view_func=ExtendedRequestResetView.as_view(str("perform_reset"))
+    "/reset", view_func=ExtendedRequestResetView.as_view(str("request_reset"))
 )
 advancedauth_user.add_url_rule(
     "/reset/<id>", view_func=ExtendedPerformResetView.as_view(str("perform_reset"))

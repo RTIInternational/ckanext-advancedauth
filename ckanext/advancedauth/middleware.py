@@ -75,7 +75,7 @@ class AdvancedauthMiddleware:
             rows = [row for row in res]
 
             if self.is_password_reset_required(rows):
-                response = redirect(f"/user/reset?id={userid}")
+                response = redirect(f"/user/reset?redirect=True")
                 return response(environ, start_response)
 
         # continue with the original application flow if not logged in or no reset required
