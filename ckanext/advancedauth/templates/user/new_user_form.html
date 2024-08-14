@@ -1,6 +1,6 @@
 {% import "macros/form.html" as form %}
 <form id="user-register-form" action="" method="post">
-  {{ h.csrf_input() }}
+  {{ h.csrf_input() if 'csrf_input' in h }}
   {{ form.errors(error_summary) }}
   {{ form.input("name", id="field-username", label=_("Username"), placeholder=_("username"), value=data.name, error=errors.name, classes=["control-medium"], is_required=True) }}
   {% set fullname_req = h.advancedauth_require_fullname() %}

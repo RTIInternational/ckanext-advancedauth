@@ -16,7 +16,7 @@
       {% endif %}
       {% block form %}
         <form action="" method="post">
-          {{ h.csrf_input() }}
+          {{ h.csrf_input() if 'csrf_input' in h }}
           <div class="form-group">
             <label for="field-username">{{ _('Email or username') }}</label>
             <input id="field-username" class="control-medium form-control" name="user" value="{{ username }}" type="text" />
