@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, ForeignKey, types
+from sqlalchemy import Table, Column, ForeignKey, types, delete, insert
 from sqlalchemy.exc import ArgumentError
 
 from ckan.model.meta import metadata, mapper, Session
@@ -70,6 +70,21 @@ class advancedauthExtras(DomainObject):
 
     def update(self, user, request):
         pass
+
+    @classmethod
+    def update_password_date(self, userid, key):
+        delete_stmt = (
+            delete(advancedauthExtras)
+            .where(advancedauthExtras.user_id == userid)
+            .where(advancedauthExtras.key == key)
+        )
+        insert_stmt = insert(advancedauthExtras).values(
+            user_id=userid, key=key, value=datetime.datetime.now()
+        )
+
+        Session.execute(delete_stmt)
+        Session.execute(insert_stmt)
+        Session.commit()
 
 
 class advancedauthAudit(DomainObject):

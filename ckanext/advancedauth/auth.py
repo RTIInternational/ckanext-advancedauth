@@ -1,5 +1,6 @@
 import logging
 import ckan.plugins.toolkit as toolkit
+from ckan.plugins.toolkit import auth_sysadmins_check
 import ckan.authz as authz
 import ckan.model as model
 from .model import advancedauthAudit
@@ -85,7 +86,8 @@ def only_approved_users(context, data_dict=None):
     user_id = ""
     # If auth_user_obj exists in context, use it. Otherwise, use user_obj
     if context.get("auth_user_obj", False) and hasattr(
-        context.get("auth_user_obj"), "id"):
+        context.get("auth_user_obj"), "id"
+    ):
         user_id = context.get("auth_user_obj").id
     elif context.get("user_obj", False) and hasattr(context.get("user_obj"), "id"):
         user_id = context.get("user_obj").id
@@ -105,6 +107,7 @@ def only_approved_users(context, data_dict=None):
 
 @toolkit.auth_allow_anonymous_access
 @toolkit.chained_auth_function
+@auth_sysadmins_check
 def advancedauth_wrapper_function(next_func, context, data_dict=None):
     # run auditor
     advancedauth_auditor(next_func, context, data_dict)
@@ -124,6 +127,13 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     ## run advancedauth_check_access
     if disallow_anonymous_access and func_name not in action_allowlist:
         advancedauth_check_access(next_func, context, data_dict)
+
+    # if user is sysadmin, skip all checks
+    user = context.get("auth_user_obj", "")
+    if user and hasattr(user, "sysadmin") and user.sysadmin:
+        if not user.state == "active":
+            raise toolkit.NotAuthorized()
+        return {"success": True}
 
     # set up variables for only_approved_users
     only_approved_users_var = toolkit.asbool(

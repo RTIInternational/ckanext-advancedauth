@@ -11,11 +11,15 @@
     <div class="module-content">
       {% block primary_content_inner %}
       <h1 class="page-heading">{{ _('Reset your password') }}</h1>
+      {% if request.args.get('redirect') %}
+        <p style="margin-top: 10px; margin-bottom: 10px">For enhanced security, we're asking some of our users to reset their passwords. We appreciate your cooperation in helping us maintain a secure environment for everyone.</p>
+      {% endif %}
       {% block form %}
         <form action="" method="post">
+          {{ h.csrf_input() if 'csrf_input' in h }}
           <div class="form-group">
             <label for="field-username">{{ _('Email or username') }}</label>
-            <input id="field-username" class="control-medium form-control" name="user" value="" type="text" />
+            <input id="field-username" class="control-medium form-control" name="user" value="{{ username }}" type="text" />
           </div>
           <div class="form-actions">
             {% block form_button %}
