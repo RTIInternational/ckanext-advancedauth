@@ -27,9 +27,6 @@ def _modify_user_schema(context, mode):
     ):
         schema["fullname"] = [toolkit.get_validator("not_empty")]
 
-    # require both emails match when registering new user
-    schema["email"] = [get_validators()["confirm_email"]]
-
     # add required schema fields with not_empty validator
     for field in advancedauth_schema_keys["required"]:
         schema[field] = [
@@ -66,6 +63,7 @@ def custom_user_create(context, data_dict):
     schema["email"] += [
         get_validators()["not_empty_string"],
         toolkit.get_validator("email_validator"),
+        get_validators()["confirm_email"],
     ]
 
     context = _modify_user_schema(context, "create")

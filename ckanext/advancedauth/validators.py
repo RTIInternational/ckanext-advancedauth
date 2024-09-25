@@ -13,8 +13,6 @@ def confirm_email(key, flattened_data, errors, context):
     extras = flattened_data.get(("__extras",), {})
     confirm_email = extras.get("email-confirm", "")
 
-    if not confirm_email:
-        return
     if email != confirm_email:
         raise Invalid("Emails do not match.")
 
