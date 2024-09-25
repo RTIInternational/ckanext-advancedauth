@@ -115,6 +115,10 @@ def advancedauth_inline_privacy_policy():
     )
 
 
+def advancedauth_turnstile_sitekey():
+    return toolkit.config.get("ckanext.advancedauth.turnstile_sitekey", "")
+
+
 # publishes the helpers for use elsewhere and for adding to templates
 helpers = {
     "advancedauth_schema": advancedauth_schema,
@@ -128,4 +132,5 @@ helpers = {
     "advancedauth_must_view_privacy_policy": advancedauth_must_view_privacy_policy,
     "advancedauth_inline_privacy_policy": advancedauth_inline_privacy_policy,
     "advancedauth_require_fullname": advancedauth_require_fullname,
+    "advancedauth_turnstile_sitekey": advancedauth_turnstile_sitekey,
 }

@@ -7,10 +7,14 @@ import ckan.model as model
 import ckan.lib.authenticator as authenticator
 
 from ckan.common import _, g, request
-from ckan.views.user import PerformResetView, EditView
+from ckan.views.user import PerformResetView, EditView, RegisterView
 from .model import advancedauthExtras as ae
 from six import text_type
 from flask import Blueprint, request
+from .captcha import check_captcha
+from ckan.types import Response
+from ckan.lib import captcha
+from typing import Union
 
 import logging
 
@@ -140,9 +144,19 @@ class ExtendedEditView(EditView):
         return base.render("user/required_reset.html", extra_vars)
 
 
+class ExtendedRegisterView(RegisterView):
+    # Override original check_recaptcha (google recaptcha) with turnstile check_captcha
+    def post(self) -> Union[Response, str]:
+        captcha.check_recaptcha = check_captcha
+        return super().post()
+
+
 advancedauth_user.add_url_rule(
     "/reset/<id>", view_func=ExtendedPerformResetView.as_view(str("perform_reset"))
 )
 advancedauth_user.add_url_rule(
     "/required_reset/<id>", view_func=ExtendedEditView.as_view(str("required_reset"))
+)
+advancedauth_user.add_url_rule(
+    "/register", view_func=ExtendedRegisterView.as_view(str("register"))
 )
