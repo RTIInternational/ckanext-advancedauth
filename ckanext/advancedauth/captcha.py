@@ -3,10 +3,9 @@
 import requests
 
 from ckan.common import config
-from ckan.types import Request
 
 
-def check_captcha(request: Request) -> None:
+def check_captcha(request) -> None:
     """Check a user\'s recaptcha submission is valid, and raise CaptchaError
     on failure."""
     turnstile_secret_key = config.get("ckanext.advancedauth.turnstile_secretkey")
