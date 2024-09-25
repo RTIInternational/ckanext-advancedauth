@@ -109,7 +109,7 @@
   </div>
   <div class="form-actions">
     {% block form_actions %}
-    {% set sitekey = "3x00000000000000000000FF" if h.is_running_in_dev() else "0x4AAAAAAAkj_0rhuMVRWMMj"%}
+    {% set sitekey = h.advancedauth_turnstile_sitekey() %}
       <div
         class="cf-turnstile"
         data-sitekey="{{sitekey}}"
