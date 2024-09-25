@@ -2,9 +2,7 @@ import datetime
 
 import ckan.plugins.toolkit as toolkit
 import ckan.lib.mailer as mailer
-import ckan.model as model
 from ckan.plugins.toolkit import chained_action
-from ckan.logic import ValidationError
 from ckan.logic.action.create import user_create
 from ckan.logic.action.get import user_show
 from ckan.logic.action.update import user_update
@@ -28,6 +26,9 @@ def _modify_user_schema(context, mode):
         toolkit.config.get("ckanext.advancedauth.require_fullname", False)
     ):
         schema["fullname"] = [toolkit.get_validator("not_empty")]
+
+    # require both emails match when registering new user
+    schema["email"] = [get_validators()["confirm_email"]]
 
     # add required schema fields with not_empty validator
     for field in advancedauth_schema_keys["required"]:
