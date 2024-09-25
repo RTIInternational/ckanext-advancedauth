@@ -12,9 +12,7 @@ from .model import advancedauthExtras as ae
 from six import text_type
 from flask import Blueprint, request
 from .captcha import check_captcha
-from ckan.types import Response
 from ckan.lib import captcha
-from typing import Union
 
 import logging
 
@@ -146,7 +144,7 @@ class ExtendedEditView(EditView):
 
 class ExtendedRegisterView(RegisterView):
     # Override original check_recaptcha (google recaptcha) with turnstile check_captcha
-    def post(self) -> Union[Response, str]:
+    def post(self):
         captcha.check_recaptcha = check_captcha
         return super().post()
 
