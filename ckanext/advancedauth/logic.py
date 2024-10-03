@@ -2,9 +2,7 @@ import datetime
 
 import ckan.plugins.toolkit as toolkit
 import ckan.lib.mailer as mailer
-import ckan.model as model
 from ckan.plugins.toolkit import chained_action
-from ckan.logic import ValidationError
 from ckan.logic.action.create import user_create
 from ckan.logic.action.get import user_show
 from ckan.logic.action.update import user_update
@@ -65,6 +63,7 @@ def custom_user_create(context, data_dict):
     schema["email"] += [
         get_validators()["not_empty_string"],
         toolkit.get_validator("email_validator"),
+        get_validators()["confirm_email"],
     ]
 
     context = _modify_user_schema(context, "create")
