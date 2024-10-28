@@ -2,9 +2,7 @@ import datetime
 
 import ckan.plugins.toolkit as toolkit
 import ckan.lib.mailer as mailer
-import ckan.model as model
 from ckan.plugins.toolkit import chained_action
-from ckan.logic import ValidationError
 from ckan.logic.action.create import user_create
 from ckan.logic.action.get import user_show
 from ckan.logic.action.update import user_update
@@ -200,7 +198,7 @@ def custom_user_update(context, data_dict):
         ]
 
     # ignore this onpassword reset workflow
-    if context["auth_user_obj"] is not None:
+    if context["auth_user_obj"] is not None and not context.get("reset_password"):
         context = _modify_user_schema(context, "update")
     # update user using ckan method
     data_dict["email"] = data_dict["email"].lower()
