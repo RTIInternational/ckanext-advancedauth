@@ -63,6 +63,7 @@ def custom_user_create(context, data_dict):
     schema["email"] += [
         get_validators()["not_empty_string"],
         toolkit.get_validator("email_validator"),
+        get_validators()["confirm_email"],
     ]
 
     context = _modify_user_schema(context, "create")
