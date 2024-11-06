@@ -7,7 +7,7 @@ import ckan.model as model
 import ckan.lib.authenticator as authenticator
 
 from ckan.common import _, g, request, current_user
-from ckan.views.user import PerformResetView, RequestResetView, RegisterView
+from ckan.views.user import RequestResetView, PerformResetView, EditView, RegisterView
 from .model import advancedauthExtras as ae
 from six import text_type
 from flask import Blueprint, request
