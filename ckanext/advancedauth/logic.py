@@ -152,7 +152,7 @@ def custom_user_create(context, data_dict):
         <body>
             <p><strong>Notice Regarding Delays in Account Services</strong></p>
             <p>
-            Thank you for your interest in mapMECFS. Currently users may experience delays in the approval of new accounts and in receiving support services.
+            Thank you for your interest in mapMECFS. Your request has been received. Currently users may experience delays in the approval of new accounts and in receiving support services.
             </p>
             <p>
             We remain committed to serving the research community and will resume full functionality as soon as possible. Thank you for your patience and understanding.
