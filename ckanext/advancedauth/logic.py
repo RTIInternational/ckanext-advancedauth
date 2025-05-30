@@ -146,17 +146,25 @@ def custom_user_create(context, data_dict):
         subject = toolkit.config.get(
             "ckanext.advancedauth.welcome_email_subject", default_subject
         )
-        body = "Thank you for registering for " + toolkit.config.get(
-            "ckan.site_title", ""
-        )
-        body += "\n"
-        # TODO: Add better tooling for sites. This is very fragile and fails on many special characters.
-        # We should specify a location for an email template
-        if toolkit.config.get("ckanext.advancedauth.welcome_email_text", False):
-            body += toolkit.config.get("ckanext.advancedauth.welcome_email_text")
-            body += "\n"
-        body += toolkit.config.get("ckan.site_title", "") + " Team"
-        mailer.mail_recipient(recipient_name, recipient_email, subject, body)
+        body = ""
+        body_html = """
+        <html>
+        <body>
+            <p><strong>Notice Regarding Delays in Account Services</strong></p>
+            <p>
+            Thank you for your interest in mapMECFS. Currently users may experience delays in the approval of new accounts and in receiving support services.
+            </p>
+            <p>
+            We remain committed to serving the research community and will resume full functionality as soon as possible. Thank you for your patience and understanding.
+            </p>
+            <p>
+            Best regards,<br>
+            The mapMECFS Team
+            </p>
+        </body>
+        </html>
+        """
+        mailer.mail_recipient(recipient_name, recipient_email, subject, body, body_html)
 
     return user_dict
 
