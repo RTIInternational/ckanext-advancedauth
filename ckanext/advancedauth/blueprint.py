@@ -4,7 +4,6 @@ import ckan.lib.mailer as mailer
 import ckan.lib.navl.dictization_functions as dictization_functions
 import ckan.logic as logic
 import ckan.model as model
-import ckan.lib.authenticator as authenticator
 
 from ckan.common import _, g, request, current_user
 from ckan.views.user import RequestResetView, PerformResetView, EditView, RegisterView
@@ -89,24 +88,10 @@ class ExtendedEditView(EditView):
             base.abort(400, _("Integrity Error"))
         data_dict.setdefault("activity_streams_email_notifications", False)
 
-        context["message"] = data_dict.get("log_message", "")
         data_dict["id"] = id
 
-        if data_dict["password1"] and data_dict["password2"]:
-            identity = {"login": g.user, "password": data_dict["old_password"]}
-            auth = authenticator.UsernamePasswordAuthenticator()
-
-            if auth.authenticate(request.environ, identity) != g.user:
-                errors = {"oldpassword": [_("Password entered was incorrect")]}
-                error_summary = (
-                    {_("Old Password"): _("incorrect password")}
-                    if not g.userobj.sysadmin
-                    else {_("Sysadmin Password"): _("incorrect password")}
-                )
-                return self.get(id, data_dict, errors, error_summary)
-
         try:
-            user = logic.get_action("ckan_user_update")(context, data_dict)
+            user = logic.get_action("user_update")(context, data_dict)
         except logic.NotAuthorized:
             base.abort(403, _("Unauthorized to edit user %s") % id)
         except logic.NotFound:
@@ -116,9 +101,10 @@ class ExtendedEditView(EditView):
             error_summary = e.error_summary
             return self.get(id, data_dict, errors, error_summary)
 
-        h.flash_success(_("Password updated"))
-        ae.update_password_date(data_dict["id"], "password_last_reset_date")
+        h.flash_success(_("Profile updated"))
+        ae.update_user_registration_check(data_dict["id"], "true")
         resp = h.redirect_to("user.read", id=user["name"])
+
         return resp
 
     def get(self, id=None, data=None, errors=None, error_summary=None):
@@ -145,7 +131,7 @@ class ExtendedEditView(EditView):
         errors = errors or {}
         extra_vars = {"data": data, "errors": errors, "error_summary": error_summary}
 
-        return base.render("user/required_reset.html", extra_vars)
+        return base.render("user/register.html", extra_vars)
 
 
 class ExtendedRegisterView(RegisterView):
@@ -162,5 +148,5 @@ advancedauth_user.add_url_rule(
     "/required_reset/<id>", view_func=ExtendedEditView.as_view(str("required_reset"))
 )
 advancedauth_user.add_url_rule(
-    "/register", view_func=ExtendedRegisterView.as_view(str("register"))
+    "/register", view_func=ExtendedEditView.as_view(str("register"))
 )

@@ -86,6 +86,21 @@ class advancedauthExtras(DomainObject):
         Session.execute(insert_stmt)
         Session.commit()
 
+    @classmethod
+    def update_user_registration_check(self, userid, value):
+        delete_stmt = (
+            delete(advancedauthExtras)
+            .where(advancedauthExtras.user_id == userid)
+            .where(advancedauthExtras.key == "registration_complete")
+        )
+        insert_stmt = insert(advancedauthExtras).values(
+            user_id=userid, key="registration_complete", value=value
+        )
+
+        Session.execute(delete_stmt)
+        Session.execute(insert_stmt)
+        Session.commit()
+
 
 class advancedauthAudit(DomainObject):
     def __repr__(self):
