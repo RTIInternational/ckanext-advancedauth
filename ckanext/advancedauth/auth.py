@@ -81,7 +81,7 @@ def my_package_update(context, data_dict=None):
 
 # this permission function denies access to users with no organizations, which is self-registered
 # users who have not yet been approved by mapMECFS admins
-def only_approved_users(context, data_dict=None):
+def only_approved_users(context, data_dict=None, func_name=None):
     func = toolkit.get_action("organization_list_for_user")
     user_id = ""
     # If auth_user_obj exists in context, use it. Otherwise, use user_obj
@@ -96,6 +96,12 @@ def only_approved_users(context, data_dict=None):
         orgs = func({}, {"id": user_id})
         if len(orgs):
             return {"success": True}
+        # allow new user to edit their own profile for "registration"
+        if func_name == "user_show":
+            requested_user_id = data_dict.get("id", "")
+            user_obj = context.get("auth_user_obj", {})
+            if requested_user_id == user_obj.id or requested_user_id == user_obj.name:
+                return {"success": True}
         approval_message = toolkit.config.get(
             "ckanext.advancedauth.only_approved_users_message",
             "Your account is pending approval",
@@ -149,7 +155,7 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     # run only_approved_users
     # this aborts with 403 if failed
     if only_approved_users_var and func_name in only_approved_users_actions:
-        only_approved_users(context, data_dict)
+        only_approved_users(context, data_dict, func_name)
 
     ## setup only_authors_can_edit
     only_authors_can_edit = toolkit.asbool(
