@@ -1,3 +1,4 @@
+import os
 import ckan.lib.base as base
 import ckan.lib.helpers as h
 import ckan.lib.navl.dictization_functions as dictization_functions
@@ -87,6 +88,10 @@ class ExtendedEditView(EditView):
         return base.render("user/register.html", extra_vars)
 
 
-advancedauth_user.add_url_rule(
-    "/register", view_func=ExtendedEditView.as_view(str("register"))
-)
+def ras_enabled():
+    return os.getenv("RAS_ENABLED", "false").lower() == "true"
+
+if ras_enabled():
+    advancedauth_user.add_url_rule(
+        "/register", view_func=ExtendedEditView.as_view(str("register"))
+    )
