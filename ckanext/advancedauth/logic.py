@@ -87,11 +87,13 @@ def custom_user_create(context, data_dict):
         extras.save()
 
     # Save oauth_user_id if external auth is enabled and value is provided
-    if helpers["advancedauth_externalauth_enabled"]() and data_dict.get("oauth_user_id"):
+    if helpers["advancedauth_externalauth_enabled"]() and data_dict.get(
+        "oauth_user_id"
+    ):
         extras = advancedauthExtras(
-            user_id=user_dict.get("id"), 
-            key="oauth_user_id", 
-            value=data_dict.get("oauth_user_id", "")
+            user_id=user_dict.get("id"),
+            key="oauth_user_id",
+            value=data_dict.get("oauth_user_id", ""),
         )
         extras.save()
 
@@ -222,7 +224,7 @@ def custom_user_update(context, data_dict):
     # add each field to the object
     advancedauth_schema_keys = helpers["advancedauth_schema_keys"]()
     extras = advancedauthExtras().get_all_extras(user_id)
-    
+
     # Process schema-defined fields
     for field in advancedauth_schema_keys["all"]:
         extra_for_field = [extra for extra in extras if extra.key == field]
@@ -235,7 +237,9 @@ def custom_user_update(context, data_dict):
                 extra_for_field = extra_for_field[0]
                 if new_val_for_field != extra_for_field.value:
                     extra_for_field.value = new_val_for_field
-                    extra_for_field.updated = datetime.datetime.now(datetime.timezone.utc)
+                    extra_for_field.updated = datetime.datetime.now(
+                        datetime.timezone.utc
+                    )
                     extra_for_field.save()
                 user_dict[field] = extra_for_field.value
             else:
@@ -251,7 +255,7 @@ def custom_user_update(context, data_dict):
     if helpers["advancedauth_externalauth_enabled"]():
         oauth_extras = [extra for extra in extras if extra.key == "oauth_user_id"]
         new_oauth_id = data_dict.get("oauth_user_id", "")
-        
+
         if new_oauth_id != "":
             if len(oauth_extras):
                 # Update existing oauth_user_id
@@ -270,8 +274,9 @@ def custom_user_update(context, data_dict):
                 user_dict["oauth_user_id"] = new_oauth_id
         else:
             user_dict["oauth_user_id"] = ""
-    
+
     return user_dict
+
 
 def custom_user_patch(context, data_dict):
     schema = context.get("schema")
@@ -280,19 +285,19 @@ def custom_user_patch(context, data_dict):
             get_validators()["not_empty_string"],
             toolkit.get_validator("email_validator"),
         ]
-    
+
     # Convert email to lowercase if provided
     if "email" in data_dict:
         data_dict["email"] = data_dict["email"].lower()
-    
+
     # update user using ckan method
     user_dict = user_patch(context, data_dict)
     user_id = user_dict.get("id")
-    
+
     # Get existing extras
     advancedauth_schema_keys = helpers["advancedauth_schema_keys"]()
     extras = advancedauthExtras().get_all_extras(user_id)
-    
+
     # Only process schema-defined fields that are present in data_dict
     for field in advancedauth_schema_keys["all"]:
         if field in data_dict:  # Only update fields that are provided
@@ -306,7 +311,9 @@ def custom_user_patch(context, data_dict):
                     extra_for_field = extra_for_field[0]
                     if new_val_for_field != extra_for_field.value:
                         extra_for_field.value = new_val_for_field
-                        extra_for_field.updated = datetime.datetime.now(datetime.timezone.utc)
+                        extra_for_field.updated = datetime.datetime.now(
+                            datetime.timezone.utc
+                        )
                         extra_for_field.save()
                     user_dict[field] = extra_for_field.value
                 else:
@@ -324,7 +331,7 @@ def custom_user_patch(context, data_dict):
     if helpers["advancedauth_externalauth_enabled"]() and "oauth_user_id" in data_dict:
         oauth_extras = [extra for extra in extras if extra.key == "oauth_user_id"]
         new_oauth_id = data_dict.get("oauth_user_id", "")
-        
+
         if new_oauth_id != "":
             if len(oauth_extras):
                 # Update existing oauth_user_id
@@ -343,7 +350,7 @@ def custom_user_patch(context, data_dict):
                 user_dict["oauth_user_id"] = new_oauth_id
         else:
             user_dict["oauth_user_id"] = ""
-    
+
     return user_dict
 
 
