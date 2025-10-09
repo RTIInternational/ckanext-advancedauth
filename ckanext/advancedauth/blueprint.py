@@ -91,6 +91,7 @@ class ExtendedEditView(EditView):
 def ras_enabled():
     return os.getenv("RAS_ENABLED", "false").lower() == "true"
 
+
 if ras_enabled():
     advancedauth_user.add_url_rule(
         "/register", view_func=ExtendedEditView.as_view(str("register"))
