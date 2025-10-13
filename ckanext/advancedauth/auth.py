@@ -152,6 +152,9 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     if check_package_update(context, data_dict, func_name):
         return {"success": True}
 
+    if check_create_organization(context, func_name):
+        return {"success": True}
+
     return next_func(context, data_dict)
 
 
@@ -195,3 +198,11 @@ def check_sysadmin_access(context):
             raise toolkit.NotAuthorized()
         return True
     return False
+
+
+def check_create_organization(context, func_name=None):
+    if func_name != "organization_create" and func_name != "group_create":
+        return False
+    if check_sysadmin_access(context):
+        return True
+    raise toolkit.NotAuthorized("You do not have permission to create an organization")
