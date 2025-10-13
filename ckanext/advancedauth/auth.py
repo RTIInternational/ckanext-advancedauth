@@ -37,16 +37,6 @@ def advancedauth_auditor(next_func, context, data_dict=None):
         audit.save()
 
 
-# checks to see if the user is logged in and aborts with a 403 if not
-def advancedauth_check_access(next_func, context, data_dict=None):
-    func_name = next_func.__name__
-    if not context.get("auth_user_obj", False) and not context.get("user", False):
-        err_msg = "Authentication is required to access this feature ({0})".format(
-            func_name
-        )
-        raise toolkit.NotAuthorized(err_msg)
-
-
 # this permission, added to the package_update action, only allows the original creator of the
 # dataset OR an organizational admin to update the package. This is so that "editor" members
 # of organization can't edit each others datasets
@@ -177,7 +167,7 @@ def check_anonymous_access(func_name, context):
         toolkit.config.get("ckanext.advancedauth.action_allowlist", "")
     )
 
-    # if anonymous access is allowed or action is in exception list, skip the auth check
+    # if anonymous access is allowed, skip the auth check
     if not disallow_anonymous_access:
         return True
 
