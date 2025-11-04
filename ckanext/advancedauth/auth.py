@@ -41,16 +41,27 @@ def advancedauth_auditor(next_func, context, data_dict=None):
 # dataset OR an organizational admin to update the package. This is so that "editor" members
 # of organization can't edit each others datasets
 def check_package_update(context, data_dict=None, func_name=None):
+    # custom auth not applicable for actions other than package_update. continue sequence of checks
+    if not func_name == "package_update":
+        return False
     only_authors_can_edit = toolkit.asbool(
         toolkit.config.get("ckanext.advancedauth.only_authors_can_edit") or False
     )
-    if not func_name == "package_update" or not only_authors_can_edit:
+    # skip custom auth if setting is not enabled
+    if not only_authors_can_edit:
         return False
     if not data_dict:
         data_dict = {"id": context.get("package").id}
     package = toolkit.get_action("package_show")(context, data_dict)
 
-    user_id = context.get("auth_user_obj").id
+    user_id = ""
+    # If auth_user_obj exists in context, use it. Otherwise, use user_obj
+    if context.get("auth_user_obj", False) and hasattr(
+        context.get("auth_user_obj"), "id"
+    ):
+        user_id = context.get("auth_user_obj").id
+    elif context.get("user_obj", False) and hasattr(context.get("user_obj"), "id"):
+        user_id = context.get("user_obj").id
     success_conditions = 0
     # if the current user created the dataset
     if user_id == package.get("creator_user_id", ""):
@@ -74,12 +85,18 @@ def check_package_update(context, data_dict=None, func_name=None):
         raise toolkit.NotAuthorized("You do not have permission to edit this dataset")
 
 
-# this permission function denies access to users with no organizations, which is self-registered
-# users who have not yet been approved by mapMECFS admins
 def check_only_approved_users(context, data_dict=None, func_name=None):
+    """
+    Approved users are those who belong to an org. The following actions are restricted to approved users only:
+        package_show • user_list • user_show • organization_list • group_list
+    """
     only_approved_users_var = toolkit.asbool(
         toolkit.config.get("ckanext.advancedauth.only_approved_users") or False
     )
+    # continue sequence of checks if only_approved_users_var is False
+    if not only_approved_users_var:
+        return False
+
     only_approved_users_actions = [
         "package_show",
         "user_list",  # integration tool checks user_list access
@@ -88,7 +105,8 @@ def check_only_approved_users(context, data_dict=None, func_name=None):
         "group_list",
     ]
 
-    if not only_approved_users_var or func_name not in only_approved_users_actions:
+    # continue sequence of checks if action is not in the only_approved_users_actions list
+    if func_name not in only_approved_users_actions:
         return False
 
     func = toolkit.get_action("organization_list_for_user")
@@ -103,8 +121,9 @@ def check_only_approved_users(context, data_dict=None, func_name=None):
 
     if user_id:
         orgs = func({}, {"id": user_id})
+        # continue sequence of checks if user belongs to at least one organization
         if len(orgs):
-            return True
+            return False
         # allow new user to edit their own profile for "registration"
         if func_name == "user_show":
             requested_user_id = data_dict.get("id", "")
@@ -115,7 +134,7 @@ def check_only_approved_users(context, data_dict=None, func_name=None):
             "ckanext.advancedauth.only_approved_users_message",
             "Your account is pending approval",
         )
-        toolkit.abort(403, approval_message)
+        raise toolkit.NotAuthorized(approval_message)
     else:
         raise toolkit.NotAuthorized("You must be logged in to access this feature")
 
@@ -130,19 +149,14 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
     # get function name
     func_name = next_func.__name__
 
-    if check_anonymous_access(func_name, context):
+    check_anonymous_access(func_name, context)
+
+    if check_sysadmin_access(context, func_name):
         return {"success": True}
 
-    if check_sysadmin_access(context):
-        return {"success": True}
-
-    if check_only_approved_users(context, data_dict, func_name):
-        return {"success": True}
+    check_only_approved_users(context, data_dict, func_name)
 
     if check_package_update(context, data_dict, func_name):
-        return {"success": True}
-
-    if check_create_organization(context, func_name):
         return {"success": True}
 
     return next_func(context, data_dict)
@@ -159,21 +173,35 @@ def get_actions_list():
 
 
 def check_anonymous_access(func_name, context):
+    """
+    Anonymous users are those not logged in. mapMECFS currently disallows anonymous access except for the following actions:
+        request_reset • user_reset • site_read • user_create • package_search • datastore_search • organization_list_for_user • package_create • sysadmin
+    The setting for allowing anonymous access is untested and should not be enabled.
+    The authorization function has no explicit approvals hence the reason for including package_create.
+    """
     disallow_anonymous_access = toolkit.asbool(
         toolkit.config.get("ckanext.advancedauth.disallow_anonymous_access") or False
     )
+    allow_anonymous_access = not disallow_anonymous_access
 
     action_allowlist = toolkit.aslist(
         toolkit.config.get("ckanext.advancedauth.action_allowlist", "")
     )
 
-    # if anonymous access is allowed, skip the auth check
-    if not disallow_anonymous_access:
-        return True
+    # if anonymous access is allowed, continue sequence of checks
+    if allow_anonymous_access:
+        return False
 
-    # if anonymous access is disallowed, and the action is not in the exception list, check if user is logged in
+    # if anonymous access is disallowed, and the action is not in the exception list, explicitly deny for anonymous users
     if disallow_anonymous_access and func_name not in action_allowlist:
-        if not context.get("auth_user_obj", False) and not context.get("user", False):
+        user_id = ""
+        if context.get("auth_user_obj", False) and hasattr(
+            context.get("auth_user_obj"), "id"
+        ):
+            user_id = context.get("auth_user_obj").id
+        elif context.get("user_obj", False) and hasattr(context.get("user_obj"), "id"):
+            user_id = context.get("user_obj").id
+        if not user_id:
             err_msg = "Authentication is required to access this feature ({0})".format(
                 func_name
             )
@@ -181,18 +209,19 @@ def check_anonymous_access(func_name, context):
     return False
 
 
-def check_sysadmin_access(context):
+def check_sysadmin_access(context, func_name):
     user = context.get("auth_user_obj", "")
     if user and hasattr(user, "sysadmin") and user.sysadmin:
+        # explict deny for deleted users
         if not user.state == "active":
-            raise toolkit.NotAuthorized()
+            raise toolkit.NotAuthorized("sysadmin was deleted")
+        # explicit approve action if user is sysadmin
         return True
+
+    # user is not sysadmin - explicit deny for these actions
+    sysadmin_only_actions = ["organization_create", "group_create"]
+    if func_name in sysadmin_only_actions:
+        raise toolkit.NotAuthorized(f"only sysadmins may perform {func_name}")
+
+    # continue sequence of checks
     return False
-
-
-def check_create_organization(context, func_name=None):
-    if func_name != "organization_create" and func_name != "group_create":
-        return False
-    if check_sysadmin_access(context):
-        return True
-    raise toolkit.NotAuthorized("You do not have permission to create an organization")
