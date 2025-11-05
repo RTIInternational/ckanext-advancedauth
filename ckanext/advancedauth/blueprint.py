@@ -92,16 +92,14 @@ def ras_enabled():
     return os.getenv("RAS_ENABLED", "false").lower() == "true"
 
 
-if ras_enabled():
-    advancedauth_user.add_url_rule(
-        "/register", view_func=ExtendedEditView.as_view(str("register"))
-    )
-
-
 def logged_out_redirect():
     return redirect("https://auth.nih.gov/siteminderagent/smlogout.asp")
 
 
-advancedauth_user.add_url_rule(
-    "/logged_out_redirect", view_func=logged_out_redirect, methods=["GET"]
-)
+if ras_enabled():
+    advancedauth_user.add_url_rule(
+        "/register", view_func=ExtendedEditView.as_view(str("register"))
+    )
+    advancedauth_user.add_url_rule(
+        "/logged_out_redirect", view_func=logged_out_redirect, methods=["GET"]
+    )
