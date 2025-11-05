@@ -7,7 +7,7 @@ import ckan.logic as logic
 from ckan.common import _, g, request
 from ckan.views.user import EditView
 from .model import advancedauthExtras as ae
-from flask import Blueprint, request
+from flask import Blueprint, request, redirect
 
 import logging
 
@@ -96,3 +96,12 @@ if ras_enabled():
     advancedauth_user.add_url_rule(
         "/register", view_func=ExtendedEditView.as_view(str("register"))
     )
+
+
+def logged_out_redirect():
+    return redirect("https://auth.nih.gov/siteminderagent/smlogout.asp")
+
+
+advancedauth_user.add_url_rule(
+    "/logged_out_redirect", view_func=logged_out_redirect, methods=["GET"]
+)
