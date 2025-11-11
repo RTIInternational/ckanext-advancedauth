@@ -79,10 +79,10 @@ def check_package_update(context, data_dict=None, func_name=None):
     if len(users_in_org) > 0:
         success_conditions += 1
 
-    if success_conditions > 0:
-        return True
-    else:
+    if success_conditions == 0:
         raise toolkit.NotAuthorized("You do not have permission to edit this dataset")
+
+    return False
 
 
 def check_only_approved_users(context, data_dict=None, func_name=None):
@@ -155,9 +155,7 @@ def advancedauth_wrapper_function(next_func, context, data_dict=None):
         return {"success": True}
 
     check_only_approved_users(context, data_dict, func_name)
-
-    if check_package_update(context, data_dict, func_name):
-        return {"success": True}
+    check_package_update(context, data_dict, func_name)
 
     return next_func(context, data_dict)
 
