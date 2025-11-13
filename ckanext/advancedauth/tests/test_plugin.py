@@ -134,14 +134,16 @@ class TestPlugin(object):
 
     def test_package_update(self):
         """
-        For a given dataset, only the dataset creator or an organizational admin may update it.
+        For a given dataset, only an organizational admin or creator+editor may update it.
         """
         org_user_dataset_creator = factories.User()
+        org_user_editor = factories.User()
         org_user_member = factories.User()
         org_user_admin = factories.User()
         owner_org = factories.Organization(
             users=[
-                {"name": org_user_dataset_creator["id"], "capacity": "member"},
+                {"name": org_user_dataset_creator["id"], "capacity": "editor"},
+                {"name": org_user_editor["id"], "capacity": "editor"},
                 {"name": org_user_member["id"], "capacity": "member"},
                 {"name": org_user_admin["id"], "capacity": "admin"},
             ]
@@ -156,6 +158,14 @@ class TestPlugin(object):
             {"user": org_user_dataset_creator["id"]},
             {"id": dataset["name"]},
         )
+
+        # check another editor in the same org cannot update a dataset they did not author
+        with pytest.raises(logic.NotAuthorized):
+            logic.check_access(
+                "package_update",
+                {"user": org_user_editor["id"]},
+                {"id": dataset["name"]},
+            )
 
         # check org admin of same org can update dataset
         assert logic.check_access(
