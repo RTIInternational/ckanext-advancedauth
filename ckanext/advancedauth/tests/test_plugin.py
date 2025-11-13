@@ -3,6 +3,7 @@
 import pytest
 import ckan.logic as logic
 import ckan.tests.factories as factories
+import ckan.tests.helpers as helpers
 
 from ckanext.advancedauth.model import advancedauthAudit
 import random
@@ -133,14 +134,16 @@ class TestPlugin(object):
 
     def test_package_update(self):
         """
-        For a given dataset, only the dataset creator or an organizational admin may update it.
+        For a given dataset, only an organizational admin or creator+editor may update it.
         """
         org_user_dataset_creator = factories.User()
+        org_user_editor = factories.User()
         org_user_member = factories.User()
         org_user_admin = factories.User()
         owner_org = factories.Organization(
             users=[
-                {"name": org_user_dataset_creator["id"], "capacity": "member"},
+                {"name": org_user_dataset_creator["id"], "capacity": "editor"},
+                {"name": org_user_editor["id"], "capacity": "editor"},
                 {"name": org_user_member["id"], "capacity": "member"},
                 {"name": org_user_admin["id"], "capacity": "admin"},
             ]
@@ -155,6 +158,14 @@ class TestPlugin(object):
             {"user": org_user_dataset_creator["id"]},
             {"id": dataset["name"]},
         )
+
+        # check another editor in the same org cannot update a dataset they did not author
+        with pytest.raises(logic.NotAuthorized):
+            logic.check_access(
+                "package_update",
+                {"user": org_user_editor["id"]},
+                {"id": dataset["name"]},
+            )
 
         # check org admin of same org can update dataset
         assert logic.check_access(
@@ -172,6 +183,36 @@ class TestPlugin(object):
             logic.check_access(
                 "package_update",
                 {"user": different_org_admin["id"]},
+                {"id": dataset["name"]},
+            )
+
+    def test_package_update_creator_removed_from_org(self):
+        """
+        When a dataset creator is removed from the organization that owns the dataset,
+        they should no longer be able to update the dataset.
+        """
+        sysadmin_user = factories.Sysadmin()
+        dataset_creator = factories.User()
+        owner_org = factories.Organization(
+            users=[{"name": dataset_creator["id"], "capacity": "admin"}]
+        )
+        dataset = factories.Dataset(
+            owner_org=owner_org["id"], private=False, user=dataset_creator
+        )
+
+        # remove creator's membership so core CKAN will now reject package_update
+        helpers.call_action(
+            "member_delete",
+            {"user": sysadmin_user["name"]},
+            id=owner_org["id"],
+            object=dataset_creator["id"],
+            object_type="user",
+        )
+
+        with pytest.raises(logic.NotAuthorized):
+            logic.check_access(
+                "package_update",
+                {"user": dataset_creator["id"]},
                 {"id": dataset["name"]},
             )
 
