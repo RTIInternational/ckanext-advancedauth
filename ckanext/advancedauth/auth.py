@@ -134,9 +134,9 @@ def check_only_approved_users(context, data_dict=None, func_name=None):
             "ckanext.advancedauth.only_approved_users_message",
             "Your account is pending approval",
         )
-        raise toolkit.NotAuthorized(approval_message)
+        raise toolkit.abort(403, approval_message)
     else:
-        raise toolkit.NotAuthorized("You must be logged in to access this feature")
+        raise toolkit.abort(403, "You must be logged in to access this feature")
 
 
 @toolkit.auth_allow_anonymous_access
