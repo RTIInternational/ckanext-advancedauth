@@ -6,7 +6,7 @@ import ckan.logic as logic
 
 from ckan.common import _, g, request
 from ckan.views.user import EditView
-from .model import advancedauthExtras as ae
+from .logic import complete_user_registration
 from flask import Blueprint, request, redirect
 
 import logging
@@ -56,7 +56,7 @@ class ExtendedEditView(EditView):
             return self.get(id, data_dict, errors, error_summary)
 
         h.flash_success(_("Profile updated"))
-        ae.update_user_registration_check(data_dict["id"], "true")
+        complete_user_registration(user, data_dict)
         resp = h.redirect_to("user.read", id=user["name"])
 
         return resp

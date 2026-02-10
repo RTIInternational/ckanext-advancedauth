@@ -58,6 +58,92 @@ def _modify_user_schema(context, mode):
     return context
 
 
+def _send_user_create_notification_email(user_dict, data_dict):
+    if not toolkit.asbool(
+        toolkit.config.get("ckanext.advancedauth.user_create_email", False)
+    ):
+        return
+
+    if not toolkit.config.get(
+        "ckanext.advancedauth.user_create_email_recipient_email", False
+    ):
+        return
+
+    recipient_name = toolkit.config.get(
+        "ckanext.advancedauth.user_create_email_recipient_name", "Admin"
+    )
+    recipient_email = toolkit.config.get(
+        "ckanext.advancedauth.user_create_email_recipient_email"
+    )
+    recipient_url = toolkit.config.get("ckan.site_url") + "/user/" + user_dict.get("name")
+    subject = "New User Registered: " + user_dict.get("name")
+    body = (
+        "User "
+        + user_dict.get("name")
+        + " registered with email "
+        + user_dict.get("email")
+        + ".\n"
+    )
+    deny_list = [
+        "name",
+        "email",
+        "email_hash",
+        "sysadmin",
+        "apikey",
+        "state",
+        "number_created_packages",
+        "activity_streams_email_notifications",
+        "about",
+        "number_of_edits",
+    ]
+    for key, value in user_dict.items():
+        value = "" if value is None else value
+        if key not in deny_list:
+            body += key + ": " + value + "\n"
+
+    advancedauth_schema = helpers["advancedauth_schema"]()
+    for item in advancedauth_schema:
+        body += item[1].get("label") + ": " + data_dict.get(item[0], "") + "\n"
+
+    body += "\nLink to profile: " + recipient_url
+    mailer.mail_recipient(recipient_name, recipient_email, subject, body)
+
+
+def _send_welcome_email(user_dict):
+    if not toolkit.asbool(toolkit.config.get("ckanext.advancedauth.welcome_email", False)):
+        return
+
+    recipient_name = user_dict.get("fullname", False) or user_dict.get("name", "")
+    recipient_email = user_dict.get("email")
+    default_subject = toolkit.config.get("ckan.site_title", "") + ": New User Registration"
+    subject = toolkit.config.get("ckanext.advancedauth.welcome_email_subject", default_subject)
+    body = "Thank you for registering for " + toolkit.config.get("ckan.site_title", "")
+    body += "\n"
+    # TODO: Add better tooling for sites. This is very fragile and fails on many special characters.
+    # We should specify a location for an email template
+    if toolkit.config.get("ckanext.advancedauth.welcome_email_text", False):
+        body += toolkit.config.get("ckanext.advancedauth.welcome_email_text")
+        body += "\n"
+    body += toolkit.config.get("ckan.site_title", "") + " Team"
+    mailer.mail_recipient(recipient_name, recipient_email, subject, body)
+
+
+def complete_user_registration(user_dict, data_dict):
+    user_id = user_dict.get("id")
+    if not user_id:
+        return False
+
+    already_complete = advancedauthExtras.get_user_registration_check(user_id)
+    advancedauthExtras.update_user_registration_check(user_id, "true")
+
+    if already_complete:
+        return False
+
+    _send_user_create_notification_email(user_dict, data_dict)
+    _send_welcome_email(user_dict)
+    return True
+
+
 # intercepts user creation and gathers new data
 def custom_user_create(context, data_dict):
     if context.get("ignore_auth"):
@@ -105,74 +191,6 @@ def custom_user_create(context, data_dict):
             value=data_dict.get("advancedauth_terms_of_service", ""),
         )
         extras.save()
-
-    # Send email notification to administrator if configured to do so
-    if toolkit.asbool(
-        toolkit.config.get("ckanext.advancedauth.user_create_email", False)
-    ):
-        if toolkit.config.get(
-            "ckanext.advancedauth.user_create_email_recipient_email", False
-        ):
-            recipient_name = toolkit.config.get(
-                "ckanext.advancedauth.user_create_email_recipient_name", "Admin"
-            )
-            recipient_email = toolkit.config.get(
-                "ckanext.advancedauth.user_create_email_recipient_email"
-            )
-            recipient_url = (
-                toolkit.config.get("ckan.site_url") + "/user/" + user_dict.get("name")
-            )
-            subject = "New User Registered: " + user_dict.get("name")
-            body = (
-                "User "
-                + user_dict.get("name")
-                + " registered with email "
-                + user_dict.get("email")
-                + ".\n"
-            )
-            deny_list = [
-                "name",
-                "email",
-                "email_hash",
-                "sysadmin",
-                "apikey",
-                "state",
-                "number_created_packages",
-                "activity_streams_email_notifications",
-                "about",
-                "number_of_edits",
-            ]
-            for key, value in user_dict.items():
-                value = "" if value is None else value
-                if key not in deny_list:
-                    body += key + ": " + value + "\n"
-            advancedauth_schema = helpers["advancedauth_schema"]()
-            for item in advancedauth_schema:
-                body += item[1].get("label") + ": " + data_dict.get(item[0], "") + "\n"
-            body += "\nLink to profile: " + recipient_url
-            mailer.mail_recipient(recipient_name, recipient_email, subject, body)
-
-    # send welcome email if configured to do so
-    if toolkit.asbool(toolkit.config.get("ckanext.advancedauth.welcome_email", False)):
-        recipient_name = user_dict.get("fullname", False) or user_dict.get("name", "")
-        recipient_email = user_dict.get("email")
-        default_subject = (
-            toolkit.config.get("ckan.site_title", "") + ": New User Registration"
-        )
-        subject = toolkit.config.get(
-            "ckanext.advancedauth.welcome_email_subject", default_subject
-        )
-        body = "Thank you for registering for " + toolkit.config.get(
-            "ckan.site_title", ""
-        )
-        body += "\n"
-        # TODO: Add better tooling for sites. This is very fragile and fails on many special characters.
-        # We should specify a location for an email template
-        if toolkit.config.get("ckanext.advancedauth.welcome_email_text", False):
-            body += toolkit.config.get("ckanext.advancedauth.welcome_email_text")
-            body += "\n"
-        body += toolkit.config.get("ckan.site_title", "") + " Team"
-        mailer.mail_recipient(recipient_name, recipient_email, subject, body)
 
     return user_dict
 

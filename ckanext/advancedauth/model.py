@@ -101,6 +101,19 @@ class advancedauthExtras(DomainObject):
         Session.execute(insert_stmt)
         Session.commit()
 
+    @classmethod
+    def get_user_registration_check(self, userid):
+        query = Session.query(advancedauthExtras.value).filter(
+            advancedauthExtras.user_id == userid,
+            advancedauthExtras.key == "registration_complete",
+        )
+        row = query.first()
+        if not row:
+            return False
+
+        value = row[0]
+        return str(value).lower() == "true"
+
 
 class advancedauthAudit(DomainObject):
     def __repr__(self):
