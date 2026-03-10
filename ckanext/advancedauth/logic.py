@@ -75,7 +75,9 @@ def _send_user_create_notification_email(user_dict, data_dict):
     recipient_email = toolkit.config.get(
         "ckanext.advancedauth.user_create_email_recipient_email"
     )
-    recipient_url = toolkit.config.get("ckan.site_url") + "/user/" + user_dict.get("name")
+    recipient_url = (
+        toolkit.config.get("ckan.site_url") + "/user/" + user_dict.get("name")
+    )
     subject = "New User Registered: " + user_dict.get("name")
     body = (
         "User "
@@ -110,13 +112,19 @@ def _send_user_create_notification_email(user_dict, data_dict):
 
 
 def _send_welcome_email(user_dict):
-    if not toolkit.asbool(toolkit.config.get("ckanext.advancedauth.welcome_email", False)):
+    if not toolkit.asbool(
+        toolkit.config.get("ckanext.advancedauth.welcome_email", False)
+    ):
         return
 
     recipient_name = user_dict.get("fullname", False) or user_dict.get("name", "")
     recipient_email = user_dict.get("email")
-    default_subject = toolkit.config.get("ckan.site_title", "") + ": New User Registration"
-    subject = toolkit.config.get("ckanext.advancedauth.welcome_email_subject", default_subject)
+    default_subject = (
+        toolkit.config.get("ckan.site_title", "") + ": New User Registration"
+    )
+    subject = toolkit.config.get(
+        "ckanext.advancedauth.welcome_email_subject", default_subject
+    )
     body = "Thank you for registering for " + toolkit.config.get("ckan.site_title", "")
     body += "\n"
     # TODO: Add better tooling for sites. This is very fragile and fails on many special characters.
