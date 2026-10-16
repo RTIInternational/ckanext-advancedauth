@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, ForeignKey, types, delete, insert
+from sqlalchemy import Table, Column, ForeignKey, types, delete, insert, inspect
 from sqlalchemy.exc import ArgumentError
 
 from ckan.model.meta import metadata, mapper, Session
@@ -33,10 +33,12 @@ advancedauth_audit_table = Table(
 
 
 def initdb():
-    if not advancedauth_extras_table.exists():
-        advancedauth_extras_table.create()
-    if not advancedauth_audit_table.exists():
-        advancedauth_audit_table.create()
+    engine = Session.get_bind()
+    insp = inspect(engine)
+    if not insp.has_table("advancedauth_extras"):
+        advancedauth_extras_table.create(engine)
+    if not insp.has_table("advancedauth_audit"):
+        advancedauth_audit_table.create(engine)
     try:
         mapper(advancedauthExtras, advancedauth_extras_table)
     except ArgumentError:
@@ -85,6 +87,34 @@ class advancedauthExtras(DomainObject):
         Session.execute(delete_stmt)
         Session.execute(insert_stmt)
         Session.commit()
+
+    @classmethod
+    def update_user_registration_check(self, userid, value):
+        delete_stmt = (
+            delete(advancedauthExtras)
+            .where(advancedauthExtras.user_id == userid)
+            .where(advancedauthExtras.key == "registration_complete")
+        )
+        insert_stmt = insert(advancedauthExtras).values(
+            user_id=userid, key="registration_complete", value=value
+        )
+
+        Session.execute(delete_stmt)
+        Session.execute(insert_stmt)
+        Session.commit()
+
+    @classmethod
+    def get_user_registration_check(self, userid):
+        query = Session.query(advancedauthExtras.value).filter(
+            advancedauthExtras.user_id == userid,
+            advancedauthExtras.key == "registration_complete",
+        )
+        row = query.first()
+        if not row:
+            return False
+
+        value = row[0]
+        return str(value).lower() == "true"
 
 
 class advancedauthAudit(DomainObject):

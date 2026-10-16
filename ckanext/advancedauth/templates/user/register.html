@@ -1,0 +1,37 @@
+{% extends "page.html" %}
+
+{% block primary_content %}
+  <section class="module">
+    <div class="module-content">
+      <div class="row">
+        <div class="col-lg-10 login-container">
+          <div style="padding: 16px 32px;">
+            <h2>Finish Setting Up Your Account</h2>
+            <p class="intro-text">Welcome to mapMECFS! To use our site, you just need to provide a few more details. Note that some fields are optional.</p>
+              {% set data = data %}
+              {% set disable_form_title = true %}
+              {% include "user/edit_user_form.html" %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block secondary %}{% endblock %}
+{% block styles %}
+  {{ super() }}
+  <style>
+    .login-container {
+      background-color: white;
+      justify-content: center;
+      align-items: center;
+      padding: 0px !important;
+      border: 1px solid rgb(215,228,231);
+    }
+    .intro-text {
+      padding-top: 16px;
+      padding-bottom: 16px;
+    }
+  </style>
+{% endblock %}
