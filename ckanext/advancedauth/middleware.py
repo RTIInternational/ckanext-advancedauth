@@ -59,15 +59,14 @@ class AdvancedauthMiddleware:
             and path_info not in self.overrides
             and not path_info.startswith("/user/reset")
         ):
-
             sql = """
-                    SELECT 
-                        advancedauth_extras.key, 
+                    SELECT
+                        advancedauth_extras.key,
                         advancedauth_extras.value,
                         advancedauth_extras.user_id
-                    FROM 
+                    FROM
                         "advancedauth_extras"
-                    WHERE 
+                    WHERE
                         advancedauth_extras.user_id = %s
                         AND advancedauth_extras.key IN ('password_last_reset_date', 'password_reset_required_date')
                   """
@@ -75,7 +74,7 @@ class AdvancedauthMiddleware:
             rows = [row for row in res]
 
             if self.is_password_reset_required(rows):
-                response = redirect(f"/user/reset?redirect=True")
+                response = redirect("/user/reset?redirect=True")
                 return response(environ, start_response)
 
         # continue with the original application flow if not logged in or no reset required

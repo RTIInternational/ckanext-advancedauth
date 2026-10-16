@@ -1,11 +1,9 @@
 from ckan.common import request
 import ckan.plugins.toolkit as toolkit
-import ckan.model as model
-from ckan.logic import NotFound, ValidationError
 from flask import Blueprint
 
 from .model import advancedauthAudit
-from ckan.model import meta, Package, Resource
+from ckan.model import meta, Package
 from sqlalchemy.orm import joinedload
 
 audit_table = Blueprint("audit_table", __name__)

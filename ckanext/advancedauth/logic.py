@@ -454,7 +454,7 @@ def enforce_visibility_check(func_name):
                 for field, default in restricted_fields:
                     if field in pkg:
                         data_dict[field] = pkg[field]
-            except:
+            except Exception:
                 # only sysadmins can make public datasets
                 for field, default in restricted_fields:
                     if field in data_dict:

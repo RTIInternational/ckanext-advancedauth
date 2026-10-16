@@ -16,22 +16,22 @@ from ckanext.advancedauth.helpers import (
 
 @pytest.mark.ckan_config("ckanext.advancedauth.must_view_privacy_policy", "true")
 def test_must_view_privacy_policy_getter():
-    assert advancedauth_must_view_privacy_policy() == True
+    assert advancedauth_must_view_privacy_policy() is True
 
 
 @pytest.mark.ckan_config("ckanext.advancedauth.must_view_privacy_policy", "")
 def test_must_view_privacy_policy_empty_string():
-    assert advancedauth_must_view_privacy_policy() == False
+    assert advancedauth_must_view_privacy_policy() is False
 
 
 @pytest.mark.ckan_config("ckanext.advancedauth.must_view_terms_of_service", "true")
 def test_must_view_terms_of_service_getter():
-    assert advancedauth_must_view_terms_of_service() == True
+    assert advancedauth_must_view_terms_of_service() is True
 
 
 @pytest.mark.ckan_config("ckanext.advancedauth.must_view_terms_of_service", "")
 def test_must_view_terms_of_service_empty_string():
-    assert advancedauth_must_view_terms_of_service() == False
+    assert advancedauth_must_view_terms_of_service() is False
 
 
 # These plugins are included to suppress warnings: recline_view image_view
@@ -56,7 +56,7 @@ class TestPlugin(object):
 
         assert (
             e.value.message
-            == f'User {user["name"]} not authorized to delete organization {owner_org["id"]}'
+            == f"User {user['name']} not authorized to delete organization {owner_org['id']}"
         )
 
     def test_resource_view(self):

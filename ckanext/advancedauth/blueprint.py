@@ -4,7 +4,7 @@ import ckan.lib.helpers as h
 import ckan.lib.navl.dictization_functions as dictization_functions
 import ckan.logic as logic
 
-from ckan.common import _, g, request
+from ckan.common import _, g
 from ckan.views.user import EditView
 from .logic import complete_user_registration
 from flask import Blueprint, request, redirect
